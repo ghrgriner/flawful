@@ -3,9 +3,11 @@
 This package has functionality for maintaining and managing language
 learning flashcards and associated audio files. The audio syntax
 generated is compatible with that used by Anki, a commonly used
-flashcard software available on computers and smart phones. The
-project repository for this package is located at TBD. Additional
-documentation is available in the wiki in the project repository.
+flashcard software available on computers and smart phones. A git
+repository for this package is located
+[on github](https://github.com/ghrgriner/flawful), with additional
+documentation in
+[the wiki](https://github.com/ghrgriner/flawful/wiki) of the repository.
 
 The primary objective of sharing this package and documentation is to
 aid users who ask the question “How can I use spaced-repetition
@@ -181,7 +183,7 @@ The code below is an excerpt from examples/example1.py distributed
 with the package. See the wiki for details on the structure of the
 input notes file.
 
-```
+```python
 # Dictionary for storing full path to each audio file, as well as the key
 audio_file_dict = flawful.AudioFileDict()
 
@@ -340,9 +342,13 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
 
 ```
 
-# Release Notes (v0.1.0)
+# Release Notes (v0.1.1)
 
-* Initial version
+* README.md changes
+
+  - Add syntax highlighting in code example
+
+  - Add links to git repository and wiki
 
 # Other Resources
 
