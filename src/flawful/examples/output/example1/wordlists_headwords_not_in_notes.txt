@@ -1,0 +1,4 @@
+Not in DB: LA: vierundvierzig	vierundvierzig	1
+No chapter assigned: LA: welcher	welcher	2
+No chapter assigned: LC: sich freuen	sich freuen (auf A)	2
+No chapter assigned: LC: Kinder erziehen	Kinder erziehen	9999

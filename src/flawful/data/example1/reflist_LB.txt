@@ -1,0 +1,21 @@
+###############################################################################
+# File: example1/reflist_LB.txt
+# Author: Ray Griner
+# Date: 12/31/2024
+#
+# Description: Second of three raw files to generate the 3 reference lists for
+# Example 1. See header of example1_reflist_LA.txt for an overview of
+# references lists.
+#
+# In this example, each line is the German text, then a tab character, then
+# a string 'N/A', where N is the chapter and A is some letter (e.g., perhaps
+# representing a section in the chapter).
+###############################################################################
+das Familienmitglied, -er	2/A
+die Geschwister (Pl.)	2/A
+die Komödie, -n	1/C
+teuer	1/A
+verrückt	1/A
+verrückt	2/B
+der Verwandte, -n / die Verwandte, -n	2/A
+das Weihnachtslied, -er	2/B

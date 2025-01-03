@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flawful"
+version = "0.1.0"
+dependencies = ["numpy", "pandas"]
+
+authors = [{name = "Ray Griner", email = "rgriner_fwd@outlook.com"}]
+description = "Tools for flashcards, audio files, and word lists for language learning."
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Natural Language :: German",
+]
+keywords = ["flashcards","language learning","audio"]
+
+[setuptools.options]
+packages = "find:"
+include = "flawful"
+python_requires = ">=3.7"
+install_requires = "pandas"
+
+[tool.setuptools]
+package-data = {"flawful" = ["data/example1/*.txt",
+                             "data/example1/audio/DiB/*.mp3",
+                             "data/example1/audio/numbered_ogg/*.ogg",
+                             "examples/output/example1/*.txt",
+                             "examples/output/example1/example1.stdout",
+                            ]}
+
