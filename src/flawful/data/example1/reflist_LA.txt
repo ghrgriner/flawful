@@ -1,0 +1,56 @@
+###############################################################################
+# File: example1/reflist_LA.txt
+# Author: Ray Griner
+# Date: 12/31/2024
+#
+# Description: First of three raw files to generate the 3 reference lists for
+# Example 1. A 'reference list' is a list of words or phrases that a user might
+# want to learn, perhaps from a book, website, or other resource. This is a raw
+# file in the sense that the headword must be extracted from each input line.
+# Each headword in the reference list may have a chapter assigned (e.g., the
+# chapter in the book or the unit in the online resource that the word is
+# from). A headword might appear in multiple reference lists or multiple times
+# in a single list.
+# 
+# In Example 1, the three reference lists are for the most part selected words
+# from Deutsch im Blick, Chapters 1-10. However, to illustrate an important
+# feature of the program, we pretend they are from three different books, where
+# each book starts at Chapter 1. The recoded chapter for each example reference
+# list is stored in each of the three input raw files.
+# 
+# List   Actual Deutsch im Blick Chapters   Recoded Chapter For Testing
+# ---------------------------------------------------------------------
+# LA     1-3                                1-3
+# LB     4-5                                1-2
+# LC     6-10                               1-5
+#
+# Finally, the format of the reference list may vary depending on the
+# source. In this example, the words are grouped by chapter.
+###############################################################################
+
+^Chapter 1
+
+acht
+bleiben, bleibt, blieb, ist geblieben
+kommen, kommt, kam, ist gekommen
+kommen aus
+das Handy, -s
+die Niederlande (Pl.)
+Italien
+vierundvierzig
+sechsundsechzig
+
+^Chapter 2
+
+das Vorlesungsverzeichnis, -se
+der Student, -en / die Studentin, -nen
+der Professor, -en / die Professorin, -nen
+welcher
+gegen
+
+^Chapter 3
+
+trinken, trinkt, trank, getrunken
+der/das Joghurt, -s
+das Brötchen, -
+das Gericht, -e

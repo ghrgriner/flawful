@@ -1,0 +1,16 @@
+###############################################################################
+# File: example1/known_no_audio.txt
+# Author: Ray Griner
+# Date: 01/01/2025
+#
+# Description: Example file that can be loaded that gives the headwords for
+# which no audio is expected (e.g., the user has checked and verified the audio
+# doesn't exist in whatever source they expect to get audio files from, or
+# perhaps no audio is needed as in the example below.
+# 
+# The example programs shows how to filter the tokens that are missing audio
+# before printing. There is no need to list headwords below for tokens that
+# will be filtered out.
+###############################################################################
+Word	Reason
+Professorin	included in audio for 'der Professor'

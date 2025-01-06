@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flawful"
+version = "0.1.1"
+dependencies = ["numpy", "pandas"]
+
+authors = [{name = "Ray Griner", email = "rgriner_fwd@outlook.com"}]
+description = "Tools for flashcards, audio files, and word lists for language learning."
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Natural Language :: German",
+]
+keywords = ["flashcards","language learning","audio"]
+
+[setuptools.options]
+packages = "find:"
+include = "flawful"
+python_requires = ">=3.7"
+install_requires = "pandas"
+
+[tool.setuptools]
+# do not add: (1) example1.out, as this is the stdout before the beginning of
+# some of the paths were removed, (2) examples/output/example1/audio/, as these
+# are just renamed input audio files, and interested users can get them from
+# the git repository.
+package-data = {"flawful" = ["data/example1/*.txt",
+                             "data/example1/audio/DiB/*.mp3",
+                             "data/example1/audio/numbered_ogg/*.ogg",
+                             "examples/output/example1/*.txt",
+                             "examples/output/example1/example1.stdout",
+                            ]}
+

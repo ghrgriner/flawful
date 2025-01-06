@@ -1,0 +1,11 @@
+###############################################################################
+# File: example1/okaylist_LB.txt
+# Author: Ray Griner
+# Date: 12/31/2024
+#
+# Description: Second of three raw files to generate the 3 okay-lists for
+# Example 1. See header and section headings of example1_okaylist_LA.txt
+# for additional details and recommend structure for large files. This file has
+# only a few lines for testing.
+###############################################################################
+Weihnachtslied

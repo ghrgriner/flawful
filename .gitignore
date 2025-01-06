@@ -1,0 +1,10 @@
+/docs
+/dist
+/src/*.egg-info
+/src/flawful/data/example1/input_notes.*
+!/src/flawful/data/example1/input_notes.txt
+__pycache__
+pylintrc
+.*
+!/.gitignore
+example1.out

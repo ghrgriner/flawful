@@ -1,0 +1,1 @@
+note_id	en1	part_of_speech	de_target_number	de1	de1_at1_sd1_color	de2	de3	de3_color	de_xref_color	de_en_add	de_conf	de_pronun	dib_sentences	at1	sd1	de_audio	de_no_audio	chapter	de_sentences	tags

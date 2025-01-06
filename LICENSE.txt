@@ -1,0 +1,54 @@
+---------------------------------------
+License for Python code in this package
+---------------------------------------
+The code in this package is licensed under the GNU General Public License
+v3. (See LICENSE_GPL_v3.txt in this directory for the license.)
+
+-------------------------------------------------------------
+License for text and audio files in Example 1 of this package
+-------------------------------------------------------------
+Example 1 in this package contains vocabulary and audio files from Deutsch
+im Blick (2nd edition, 2017) and Grimm Grammar. Deutsch im Blick is a free
+online first-year German textbook and companion grammar authored by Dr.
+Zsuzsanna Abrams and published by the Center for Open Educational Resources
+and Language Learning (COERLL) at the University of Texas - Austin.
+
+Deutsch im Blick and Grimm Grammar are licensed under the Creative Commons
+Attribution 4.0 International (CC BY 4.0). The data files (.txt files) and
+audio files distributed with Example 1 are also licensed under CC BY 4.0.
+This is a modification of the original work. This package is not affiliated
+with or endorsed by Dr. Abrams or COERLL.
+
+URL of a human-readable summary of the CC BY 4.0 license:
+    https://creativecommons.org/licenses/by/4.0/.
+
+URL of the license itself. The summary is not a substitute for the license:
+    https://creativecommons.org/licenses/by/4.0/legalcode.
+
+The derived work is © 2020-2025 by Ray Griner.
+
+Note the disclaimer of warranties in the CC BY 4.0 license:
+
+Section 5 – Disclaimer of Warranties and Limitation of Liability.
+
+    Unless otherwise separately undertaken by the Licensor, to the extent
+possible, the Licensor offers the Licensed Material as-is and as-available,
+and makes no representations or warranties of any kind concerning the
+Licensed Material, whether express, implied, statutory, or other. This
+includes, without limitation, warranties of title, merchantability, fitness
+for a particular purpose, non-infringement, absence of latent or other
+defects, accuracy, or the presence or absence of errors, whether or not
+known or discoverable. Where disclaimers of warranties are not allowed in
+full or in part, this disclaimer may not apply to You.
+    To the extent possible, in no event will the Licensor be liable to You
+on any legal theory (including, without limitation, negligence) or
+otherwise for any direct, special, indirect, incidental, consequential,
+punitive, exemplary, or other losses, costs, expenses, or damages arising
+out of this Public License or use of the Licensed Material, even if the
+Licensor has been advised of the possibility of such losses, costs,
+expenses, or damages. Where a limitation of liability is not allowed in
+full or in part, this limitation may not apply to You.
+    The disclaimer of warranties and limitation of liability provided above
+shall be interpreted in a manner that, to the extent possible, most closely
+approximates an absolute disclaimer and waiver of all liability.
+

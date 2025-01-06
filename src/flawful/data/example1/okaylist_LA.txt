@@ -1,0 +1,46 @@
+###############################################################################
+# File: example1/okaylist_LA.txt
+# Author: Ray Griner
+# Date: 12/31/2024
+#
+# Description: First of three raw files to generate the 3 okay-lists for
+# Example 1. An 'okay-list' is a list of words or phrases where a learner has
+# indicated they are okay if the words do not appear in their notes for study.
+# A common task for working with a reference list will be to report any words
+# in the reference list not in the notes for study and not in the okay-list.
+# Like the reference list, each line of the okay-list will be parsed to get
+# a headword.
+# 
+# For larger files, it is sensible to group the lines by reason. Some example
+# reasons are given in the comments below, but we will not categorize the
+# words in this simple example and just give a couple words for testing.
+###############################################################################
+sechsundsechzig
+# The next word is already the notes that will be studied, so there is no
+# impact to putting it in the okay-list.
+Italien
+#-----------------------------------------------------------------------------
+# Compound words, usually nouns, but sometimes nouns where the meaning is the
+# prefix + base, or an obvious verb + lassen combination, etc...
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Present participles
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Past participles
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# da- and wo- compounds
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Adjectives starting with un-
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# verbs with her/hin prefix and no idiomatic meanings to note
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Definition is not clear
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Obscure words or words simply not of interest
+#-----------------------------------------------------------------------------

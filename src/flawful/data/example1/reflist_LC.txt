@@ -1,0 +1,39 @@
+###############################################################################
+# File: example1/reflist_LC.txt
+# Author: Ray Griner
+# Date: 12/31/2024
+#
+# Description: Third of three raw files to generate the 3 reference lists for
+# Example 1. See header of example1_reflist_LA.txt for an overview of
+# references lists.
+#
+# This example is formatted as if it were output from a spreadsheet (except for
+# this file header), where
+# a string 'N/A', where N is the chapter and A is some letter (e.g., perhaps
+# representing a section).
+###############################################################################
+Base Word	Full Word	Chapter	S1	S2	S3
+helfen	helfen, hilft, half, hat geholfen	1	helfen: Example 1		
+teuer	teuer	6	teuer: Example 1 (Chapter 1)	Example 2 (Chapter 1)	
+bewusstlos	bewusstlos	2	bewusstlos: Example 1	bewusstlos: Example 2	
+sich umziehen	sich umziehen, zieht sich um, zog sich um, sich umgezogen	2	umziehen: Example 1		
+Gesicht	das Gesicht, -er	2	Gesicht: Example 1	Gesicht: Example 2	Gesicht: Example 3
+Gesichtscreme	das Gesichtscreme, -n	2	Gesichtscreme: Example 1		
+sich freuen	sich freuen (auf A)	2	sich freuen: Example 1	sich freuen: Example 2	
+Kalorie	die Kalorie, -n	2	Kalorie: Example 1	Kalorie: Example 2	
+Professor	der Professor, -en / die Professorin, -nen	3	Professor: Example 1		
+Professorin	der Professor, -en / die Professorin, -nen	3	Professorin: Example 1		
+träumen	träumen (von D), träumt, träumte, geträumt	3	träumen: Example 1	träumen: Example 2	
+Schmetterling	der Schmetterling, -e	3	Schmetterling: Example 1		
+irre	irre	3	irre: Example 1	irre: Example 2	irre: Example 3
+hart	hart	3	hart: Example 1	hart: Example 2	
+teuer	teuer	3	teuer: Example 1 (Chapter 3)		
+salzig	salzig	3	salzig: Example 1		
+alleinerziehende Mutter	alleinerziehende Mutter	4	alleinerziehende Mutter: Example 1		
+Berufsberater	der Berufsberater, - / die Berufsberaterin, -nen	4	Berufsberater: Example 1		
+Berufsberaterin	der Berufsberater, - / die Berufsberaterin, -nen	4	Berufsberaterin: Example 1		
+überraschen	überraschen, überrascht, überraschte, hat überrascht	4	überraschen: Example 1		
+Kinder erziehen	Kinder erziehen		Kinder erziehen: Example 1	Kinder erziehen: Example 2	
+sofort	sofort	5	sofort: Example 1	sofort: Example 2	sofort: Example 3
+gleich	gleich	5	gleich: Example 1		
+wahnsinnig	wahnsinnig	5	wahnsinning: Example 1		

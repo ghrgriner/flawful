@@ -1,0 +1,4 @@
+chapter	de1	de2	de2_problems
+1	kommen (aus D)		VERB_TOKENS
+7	sich umziehen	sg	VERB_PRONUN
+9	alleinerziehende Mutter		NOUN_TOKENS
