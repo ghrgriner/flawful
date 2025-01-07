@@ -43,6 +43,10 @@
 # Audio files copied and renamed
 #
 # Changes:
+# [20250107] Change `assign_chapter` element for `de_xref` to True, and add
+#   new field `de_xref_ignore_ch` where assign_chapter element is False. This
+#   aligns more with expected use that there might be situations when the user
+#   wants to assign the chapter and others when they do not.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -121,8 +125,8 @@ def select_output_columns(df_):
     """
     return df_[['note_id','en1','part_of_speech','de_target_number',
            'de1','de1_at1_sd1_color','de2','de3','de3_color','de_xref_color',
-           'de_en_add','de_conf','de_pronun','dib_sentences',
-           'at1','sd1','de_audio','de_no_audio',
+           'de_xref_ignore_ch_color', 'de_en_add','de_conf','de_pronun',
+           'dib_sentences','at1','sd1','de_audio','de_no_audio',
            'chapter','de_sentences','tags']]
 
 def make_headword_reflist(line):
@@ -598,13 +602,14 @@ res_de = [
          select_keys_no_audio=filter_text_not_audio_pre,
          htag_prefix='DE',
          chapter=row[0],
-         fields=[row[1],row[2],row[3],row[4],row[5],         row[6]],
-         names= ['de1', 'at1', 'sd1', 'de3','dib_sentences','de_xref'],
-         seps=  [','  , ','  , ','  , ';'  ,';'            ,';'      ],
-         assign_chapter=[True, True, True, True, True, False],
+         fields=[row[1],row[2],row[3],row[4],row[5],row[6],row[7]],
+         names= ['de1', 'at1', 'sd1', 'de3','dib_sentences','de_xref',
+                 'de_xref_ignore_ch'],
+         seps=  [','  , ','  , ','  , ';'  ,';'            ,';'      ,';'],
+         assign_chapter=[True, True, True, True, True, True, False],
          )
      for row in df[['chapter','de1','at1','sd1','de3','dib_sentences',
-                    'de_xref']].values
+                    'de_xref','de_xref_ignore_ch']].values
          ]
 # Put each element in `res_de` in own data frame column.
 df['de_audio'] = [x.audio_output for x in res_de]
@@ -619,6 +624,8 @@ df['de3_color'] = [x.markup_output['de3'] for x in res_de]
 df['at1_color'] = [x.markup_output['at1'] for x in res_de]
 df['sd1_color'] = [x.markup_output['sd1'] for x in res_de]
 df['de_xref_color'] = [x.markup_output['de_xref'] for x in res_de]
+df['de_xref_ignore_ch_color'] = [
+      x.markup_output['de_xref_ignore_ch'] for x in res_de]
 df['de_sentences'] = [flawful.list_of_lists_to_str(x.sent_lists['LC'])
                  for x in res_de]
 # done with `res_de`

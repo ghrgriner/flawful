@@ -47,6 +47,7 @@ der Student, -en / die Studentin, -nen
 der Professor, -en / die Professorin, -nen
 welcher
 gegen
+sprechen
 
 ^Chapter 3
 
@@ -54,3 +55,4 @@ trinken, trinkt, trank, getrunken
 der/das Joghurt, -s
 das Brötchen, -
 das Gericht, -e
+

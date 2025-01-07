@@ -14,7 +14,8 @@
 ###############################################################################
 Base Word	Full Word	Chapter	S1	S2	S3
 helfen	helfen, hilft, half, hat geholfen	1	helfen: Example 1		
-teuer	teuer	6	teuer: Example 1 (Chapter 1)	Example 2 (Chapter 1)	
+teuer	teuer	2	teuer: Example 1 (Chapter 1)	Example 2 (Chapter 1)	
+über das Wetter sprechen	über das Wetter sprechen	2	über das Wetter sprechen: Example 1		
 bewusstlos	bewusstlos	2	bewusstlos: Example 1	bewusstlos: Example 2	
 sich umziehen	sich umziehen, zieht sich um, zog sich um, sich umgezogen	2	umziehen: Example 1		
 Gesicht	das Gesicht, -er	2	Gesicht: Example 1	Gesicht: Example 2	Gesicht: Example 3
