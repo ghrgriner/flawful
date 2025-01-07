@@ -342,16 +342,16 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
 
 ```
 
-# Release Notes (v0.1.1)
+# Release Notes (v0.1.2)
 
-* Update example1.py to copy audio files to output directory and upload the
-  directory to the git repository (but do not include in the package)
-
-* README.md changes
-
-  - Add syntax highlighting in code example
-
-  - Add links to git repository and wiki
+* Example 1
+  - Update example1.py to add `de_xref_ignore_ch` with no chapter assignment
+    performed and change `de_xref` to now have chapter assignment. Add new row
+    to input_notes.txt, reflist_LA.txt, and reflist_LC.txt and add new audio
+    file to test/illustrate the functionality. Results in four new rows in
+    output - the new input note and three notes that now have chapter assigned
+    from `de_xref`.
+  - Fix chapter of 'teuer' in reflist_LC.txt
 
 # Other Resources
 
