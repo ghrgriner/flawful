@@ -52,10 +52,9 @@ LICENSE.txt for licensing details.)
 # File:    __init__.py
 # Date:    2024-12-19
 # Author:  Ray Griner
-#
 #------------------------------------------------------------------------------
 __author__ = 'Ray Griner'
-__version__ = '0.1.2'
+__version__ = '0.2.0'
 __all__ = ['german','utils']
 
 #from .german import write_tokens_wo_audio, make_de2_probs

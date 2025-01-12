@@ -932,10 +932,16 @@ def make_prompt_and_answer_table(prompts: List[str],
             p_list.append(f'<tr><td>{prompts[idx]}</td><td>&nbsp;</td></tr>')
             a_list.append(f'<tr><td>{prompts[idx]}</td><td>{val}</td></tr>')
 
-    if n_pro == 0 or n_pro != n_ans:
+    if (n_pro > 0 or n_ans > 0) and (n_pro != n_ans):
         a_list.append('</table>')
         p_list.append('</table>')
         return {'tokenized_omitted': 'Y',
+                'prompt': ''.join(p_list),
+                'answer': ''.join(a_list)}
+    elif (n_pro == 0 and n_ans == 0):
+        a_list.append('</table>')
+        p_list.append('</table>')
+        return {'tokenized_omitted': '',
                 'prompt': ''.join(p_list),
                 'answer': ''.join(a_list)}
     else:

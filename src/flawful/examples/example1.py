@@ -49,6 +49,9 @@
 #   wants to assign the chapter and others when they do not.
 # [20250111] Remove `de_en_add` references, and replace with references to
 #   new fields `de1_hint`, `de_notes`, and `de3_prompt`.
+# [20250112] Add call to `make_prompt_and_answer_table` and output the created
+#   fields (`de_table_answer`,`de_table_prompt`,`de3_omitted`). Refactor code
+#   per some linter warnings.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -63,12 +66,13 @@
 # recommendations that apply to production.
 #------------------------------------------------------------------------------
 
-import pandas as pd
 import re
+import os
+
+import pandas as pd
 import numpy as np
 import flawful
 import flawful.german
-import os
 
 #------------------------------------------------------------------------------
 # Input / Output directories should be set by the user before running.
@@ -127,7 +131,8 @@ def select_output_columns(df_):
     """
     return df_[['note_id','en1','part_of_speech','de_target_number',
            'de1','de1_at1_sd1_color','de2','de3','de3_color','de_xref_color',
-           'de_xref_ignore_ch_color','de1_hint','de_notes','de3_prompt',
+           'de_xref_ignore_ch_color','de1_hint','de_table_prompt',
+           'de_table_answer','de3_omitted','de_notes','de3_prompt',
            'de_conf','de_pronun','dib_sentences','at1','sd1','de_audio',
            'de_no_audio','chapter','de_sentences','tags']]
 
@@ -189,7 +194,8 @@ def make_wordlist_key_notes(x):
                                  ret_val)
     ret_val = ret_val.translate(de_trtab)
     ret_val = ret_val.split('[')[0].split('(')[0]
-    if ret_val.strip() == 'sich' and x.strip() != 'sich': ret_val = ''
+    if ret_val.strip() == 'sich' and x.strip() != 'sich':
+        ret_val = ''
     return ret_val.strip()
 
 def make_audio_key_notes(x):
@@ -233,13 +239,13 @@ def make_la_dict():
                 chapter_num = int(line.replace('^Chapter ',''))
                 continue
             # ignore blank lines and comments
-            if (not line) or ignore_line_pattern.match(line): continue
+            if (not line) or ignore_line_pattern.match(line):
+                continue
             dictkey=make_headword_reflist(line)
             if dictkey in ret_dict:
                 # can be changed to just print a message if needed
                 raise ValueError(f'Duplicate key in reflist LA: {dictkey}')
-            else:
-                ret_dict[dictkey] = flawful.WordlistEntry(full_line=line,
+            ret_dict[dictkey] = flawful.WordlistEntry(full_line=line,
                                               book_chapter=chapter_num)
     return ret_dict
 
@@ -375,10 +381,11 @@ def str_to_chapter(x):
     """
     if not x:
         return flawful.DEFAULT_CHAPTER_FROM_NOTES
-    elif x.strip().startswith('F'):
+
+    if x.strip().startswith('F'):
         return 10 + int(x.strip()[1:2])
-    else:
-        return int(np.floor(float(x)))
+
+    return int(np.floor(float(x)))
 
 def filter_text_not_audio_pre(chapter, in_wordlists, token):
     """Indicate whether to put the token in the 'keys_no_audio' dict.
@@ -470,7 +477,7 @@ def make_known_no_audio_dict():
     df_.set_index('Word', inplace=True)
     return df_['Reason'].to_dict()
 
-def make_tables_and_listings(df: pd.DataFrame, wordlist_id,
+def make_tables_and_listings(df_: pd.DataFrame, wordlist_id,
                              print_notes_without_audio, one_chapter):
     """Example function that writes some frequency tables and listings.
 
@@ -494,18 +501,18 @@ def make_tables_and_listings(df: pd.DataFrame, wordlist_id,
     None, only side-effect is printing.
     """
     # Probably sensible to print a warning if the foreign word is missing.
-    dfprint = df[['note_id','en1','de1']]
-    if len(dfprint[(df.de1=='')])>0:
+    dfprint = df_[['note_id','en1','de1']]
+    if len(dfprint[(df_.de1=='')])>0:
         print('\nWARNING: Records with de1 missing:')
-        print(dfprint[(df.de1=='')])
+        print(dfprint[(df_.de1=='')])
 
     #--------------------------------------------------------------------------
     # Cross tabs of Chapter by Audio file status, etc...
     #--------------------------------------------------------------------------
-    flawful.twowaytbl(df, title='\nNotes with German audio by chapter:',
+    flawful.twowaytbl(df_, title='\nNotes with German audio by chapter:',
               row='chapter', col='has_german_audio')
     if wordlist_id and wordlist_id != 'All':
-        flawful.twowaytbl(df, title=('\nNotes by German chapter and status in '
+        flawful.twowaytbl(df_, title=('\nNotes by German chapter and status in '
                   f'{wordlist_id} word list:'),
                   row='chapter', col=f'In{wordlist_id}', cumulative=True)
 
@@ -514,29 +521,30 @@ def make_tables_and_listings(df: pd.DataFrame, wordlist_id,
     #--------------------------------------------------------------------------
     if print_notes_without_audio:
         if not one_chapter:
-            dfprob = df[ (df.de_audio == '') ]
+            dfprob = df_[ (df_.de_audio == '') ]
             dfprob = dfprob[['note_id','en1','de1','de3']]
             num_miss = len(dfprob.index)
             print(f'\nMissing German audio ({num_miss} records):')
         else:
-            dfprob = df[ (df.chapter == one_chapter)
-                            & (df.de_audio == '') ]
+            dfprob = df_[ (df_.chapter == one_chapter)
+                            & (df_.de_audio == '') ]
             dfprob = dfprob[['note_id','en1','de1','de3']]
             num_miss = len(dfprob.index)
             print(f'\nMissing German audio ({num_miss} records):')
-            if num_miss>0: print(dfprob)
+            if num_miss>0:
+                print(dfprob)
 
     # other examples of descriptive tables
-    #df['FirstLB'] = (df['InLB'] & ~df['InLA'])
-    #print(df.pivot_table(index=['FirstLB','InLB','InLA'], values='de1',
+    #df_['FirstLB'] = (df_['InLB'] & ~df_['InLA'])
+    #print(df_.pivot_table(index=['FirstLB','InLB','InLA'], values='de1',
     #      aggfunc=len, margins=True))
 
-def write_de2_problems(df, outfile):
+def write_de2_problems(df_, outfile):
     """Example function that writes records flagged with problems in `de2`.
     """
-    dfout = df[['chapter','de1','de2','de2_problems']]
-    dfout = dfout[~(dfout.de2_problems == '')]
-    dfout.to_csv(outfile, sep='\t', index=False, quoting=3)
+    df_out = df_[['chapter','de1','de2','de2_problems']]
+    df_out = df_out[~(dfout.de2_problems == '')]
+    df_out.to_csv(outfile, sep='\t', index=False, quoting=3)
 #------------------------------------------------------------------------------
 # End functions
 #------------------------------------------------------------------------------
@@ -662,6 +670,30 @@ df['de_target_number'] = [
 df['has_german_audio'] = df['de_audio'] != ''
 
 #------------------------------------------------------------------------------
+# The fields created above are sufficient, but we would like to go a step
+# further and put the prompts and answers in HTML format.
+#------------------------------------------------------------------------------
+df['n_de3'] = df.de3.map(flawful.count_tokens)
+df['n_de3_prompt'] = df.de3_prompt.map(flawful.count_tokens)
+df['n_match'] = np.where( df.n_de3 == df.n_de3_prompt, 'Y', 'N')
+df['de1_prompt'] = (df.en1 + ' (' + df.part_of_speech + ') '
+                           + df.de_target_number)
+df['de1_prompt'] += np.where(df.de1_hint != '', ' [' + df.de1_hint + ']', '')
+make_rv = [
+    flawful.make_prompt_and_answer_table(
+            prompts=[r[0],''], answers=[r[1],r[2]],
+            tokenized_prompts=r[3], tokenized_answers=r[4],
+            drop_empty_rows=True)
+    for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
+                 'de3_color']].values
+          ]
+df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
+df['de_table_answer'] = [ x['answer'] for x in make_rv ]
+df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
+
+#print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
+
+#------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes
 #------------------------------------------------------------------------------
 de_dicts.print_unused_words(os.path.join(OUTPUT_DIR,
@@ -669,8 +701,10 @@ de_dicts.print_unused_words(os.path.join(OUTPUT_DIR,
                             WORDLISTS_TO_COMPARE, de_okay_dicts)
 
 # Copy audio files to production directory and/or list unused files.
-if COPY_AUDIO: audio_file_dict.copy_used_files(AUDIO_OUTPUT_DIR)
-if PRINT_UNUSED_AUDIO: audio_file_dict.print_unused_audio()
+if COPY_AUDIO:
+    audio_file_dict.copy_used_files(AUDIO_OUTPUT_DIR)
+if PRINT_UNUSED_AUDIO:
+    audio_file_dict.print_unused_audio()
 
 # Never sort when exporting all records, because the typical use case in
 # that scenario is to create some new column that is then copied to the

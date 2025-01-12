@@ -234,7 +234,7 @@ df['chapter'] = [ x['chapter'] for x in res_mc ]
 df['chapter_tags'] = [ x['tags'] for x in res_mc ]
 
 # This function does the most work.
-# Field information passed in three or four equal-sized lists (`fields`,
+# Field information is passed in three or four equal-sized lists (`fields`,
 #  `names`, `seps`, `assign_character`), but this may change in the future.
 res_de = [
      flawful.tag_audio_and_markup(audio_dicts=aud_dicts, wordlists=de_dicts,
@@ -243,13 +243,14 @@ res_de = [
          select_keys_no_audio=filter_text_not_audio_pre,
          htag_prefix='DE',
          chapter=row[0],
-         fields=[row[1],row[2],row[3],row[4],row[5],         row[6]],
-         names= ['de1', 'at1', 'sd1', 'de3','dib_sentences','de_xref'],
-         seps=  [','  , ','  , ','  , ';'  ,';'            ,';'      ],
-         assign_chapter=[True, True, True, True, True, False],
+         fields=[row[1],row[2],row[3],row[4],row[5],row[6],row[7]],
+         names= ['de1', 'at1', 'sd1', 'de3','dib_sentences','de_xref',
+                 'de_xref_ignore_ch'],
+         seps=  [','  , ','  , ','  , ';'  ,';'            ,';'      ,';'],
+         assign_chapter=[True, True, True, True, True, True, False],
          )
      for row in df[['chapter','de1','at1','sd1','de3','dib_sentences',
-                    'de_xref']].values
+                    'de_xref','de_xref_ignore_ch']].values
          ]
 # Put each element in `res_de` in own data frame column.
 df['de_audio'] = [x.audio_output for x in res_de]
@@ -264,6 +265,8 @@ df['de3_color'] = [x.markup_output['de3'] for x in res_de]
 df['at1_color'] = [x.markup_output['at1'] for x in res_de]
 df['sd1_color'] = [x.markup_output['sd1'] for x in res_de]
 df['de_xref_color'] = [x.markup_output['de_xref'] for x in res_de]
+df['de_xref_ignore_ch_color'] = [
+      x.markup_output['de_xref_ignore_ch'] for x in res_de]
 df['de_sentences'] = [flawful.list_of_lists_to_str(x.sent_lists['LC'])
                  for x in res_de]
 # done with `res_de`
@@ -298,15 +301,41 @@ df['de_target_number'] = [
 df['has_german_audio'] = df['de_audio'] != ''
 
 #------------------------------------------------------------------------------
+# The fields created above are sufficient, but we would like to go a step
+# further and put the prompts and answers in HTML format.
+#------------------------------------------------------------------------------
+df['n_de3'] = df.de3.map(flawful.count_tokens)
+df['n_de3_prompt'] = df.de3_prompt.map(flawful.count_tokens)
+df['n_match'] = np.where( df.n_de3 == df.n_de3_prompt, 'Y', 'N')
+df['de1_prompt'] = (df.en1 + ' (' + df.part_of_speech + ') '
+                           + df.de_target_number)
+df['de1_prompt'] += np.where(df.de1_hint != '', ' [' + df.de1_hint + ']', '')
+make_rv = [
+    flawful.make_prompt_and_answer_table(
+            prompts=[r[0],''], answers=[r[1],r[2]],
+            tokenized_prompts=r[3], tokenized_answers=r[4],
+            drop_empty_rows=True)
+    for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
+                 'de3_color']].values
+          ]
+df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
+df['de_table_answer'] = [ x['answer'] for x in make_rv ]
+df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
+
+#print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
+
+#------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes
 #------------------------------------------------------------------------------
 de_dicts.print_unused_words(os.path.join(OUTPUT_DIR,
                                        'wordlists_headwords_not_in_notes.txt'),
                             WORDLISTS_TO_COMPARE, de_okay_dicts)
 
-# Copy audio files to production directory and/or list unused files
-if COPY_AUDIO: audio_file_dict.copy_used_files(AUDIO_OUTPUT_DIR)
-if PRINT_UNUSED_AUDIO: audio_file_dict.print_unused_audio()
+# Copy audio files to production directory and/or list unused files.
+if COPY_AUDIO:
+    audio_file_dict.copy_used_files(AUDIO_OUTPUT_DIR)
+if PRINT_UNUSED_AUDIO:
+    audio_file_dict.print_unused_audio()
 
 # Never sort when exporting all records, because the typical use case in
 # that scenario is to create some new column that is then copied to the
@@ -320,8 +349,7 @@ dfout = select_output_rows(df, MAX_CHAPTER, ONE_CHAPTER, EXPORT_ALL_RECORDS)
 make_tables_and_listings(dfout, WORDLISTS_TO_COMPARE,
                          PRINT_NOTES_WITHOUT_AUDIO, ONE_CHAPTER)
 
-flawful.german.write_de2_problems(dfout,
-        os.path.join(OUTPUT_DIR, 'de2_problems.txt'))
+write_de2_problems(dfout, os.path.join(OUTPUT_DIR, 'de2_problems.txt'))
 
 if WRITE_WORDS_WITHOUT_AUDIO:
     flawful.german.write_keys_no_audio(
@@ -339,21 +367,24 @@ dfout.to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}.txt'), sep='\t',
 # make an empty dataset and just write the column names
 dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
                   sep='\t', index=False, quoting=3)
-
 ```
 
-# Release Notes (v0.1.2)
+# Release Notes (v0.2.0)
+
+* Add `make_prompt_and_answer_table` function to put prompts and answers in an
+  HTML table. The wiki provides example flashcards with and without using this
+  table.
 
 * Example 1
-  - Update example1.py to add `de_xref_ignore_ch` with no chapter assignment
-    performed and change `de_xref` to now have chapter assignment. Add new row
-    to input_notes.txt, reflist_LA.txt, and reflist_LC.txt and add new audio
-    file to test/illustrate the functionality. Results in four new rows in
-    output - the new input note and three notes that now have chapter assigned
-    from `de_xref`.
-  - Fix chapter of 'teuer' in reflist_LC.txt
+  - Split contents of `de_en_add` into `de1_hint`, `de_notes`, and
+    `de3_prompt`. The intent is that `de3` and `de3_prompt` should have the
+    same number of tokens so that it's clear which prompt is associated with
+    which answer.
+  - Add example code using the new `make_prompt_and_answer_table` function and
+    outputting the new variables created by the function.
 
 # Other Resources
 
 We have also authored the `wikwork` package that is designed to
 retrieve word and audio file information from Wiktionary.
+
