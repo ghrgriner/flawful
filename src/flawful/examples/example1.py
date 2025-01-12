@@ -47,6 +47,8 @@
 #   new field `de_xref_ignore_ch` where assign_chapter element is False. This
 #   aligns more with expected use that there might be situations when the user
 #   wants to assign the chapter and others when they do not.
+# [20250111] Remove `de_en_add` references, and replace with references to
+#   new fields `de1_hint`, `de_notes`, and `de3_prompt`.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -125,9 +127,9 @@ def select_output_columns(df_):
     """
     return df_[['note_id','en1','part_of_speech','de_target_number',
            'de1','de1_at1_sd1_color','de2','de3','de3_color','de_xref_color',
-           'de_xref_ignore_ch_color', 'de_en_add','de_conf','de_pronun',
-           'dib_sentences','at1','sd1','de_audio','de_no_audio',
-           'chapter','de_sentences','tags']]
+           'de_xref_ignore_ch_color','de1_hint','de_notes','de3_prompt',
+           'de_conf','de_pronun','dib_sentences','at1','sd1','de_audio',
+           'de_no_audio','chapter','de_sentences','tags']]
 
 def make_headword_reflist(line):
     """Simple function to extract key (=headword) when making dictionaries.
