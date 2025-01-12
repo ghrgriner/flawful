@@ -66,5 +66,6 @@ __all__ = ['german','utils']
 from .utils import AudioFileDict, dupkey, init_chapter, twowaytbl
 from .utils import list_of_lists_to_str, Wordlists, tag_audio_and_markup
 from .utils import AudioFileNameInfo, WordlistEntry, OkaylistEntry
-from .utils import DEFAULT_CHAPTER_FROM_NOTES
+from .utils import DEFAULT_CHAPTER_FROM_NOTES, count_tokens
+from .utils import make_prompt_and_answer_table
 

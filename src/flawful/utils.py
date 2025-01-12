@@ -27,6 +27,8 @@ package as well.
 # Date:    2024-12-05
 # Author:  Ray Griner
 # Purpose: Miscellaneous utilities
+# Changes:
+# [20240111] Add `count_tokens` and `make_prompt_and_answer_table`.
 #------------------------------------------------------------------------------
 
 import pandas as pd
@@ -505,7 +507,7 @@ def tag_audio_and_markup(audio_dicts: Dict[str, Any],
         `field_values`.
     first_chapter_tag_prefix : str, optional (default = 'FC')
         The final chapter will be calculated for the note (by extracting
-        each headword, seeing if there is a chapter assigned if a 
+        each headword, seeing if there is a chapter assigned if a
         Wordlist, and taking the minimum of these and the `chapter`
         value). Once the minimum chapter is calculated, a tag will be
         added to the `Tags` output string. This gives the prefix of
@@ -845,4 +847,107 @@ def init_chapter(chapters: str,
     taglist = [f'{tag_prefix}{x}' for x in sorted(chaplist)]
     tags = ' '.join(taglist)
     return {'chapter': chapter, 'tags': tags}
+
+def count_tokens(x: str, sep: str =';') -> int:
+    """Count number of tokens in string.
+
+    Parameters
+    ----------
+    x : str
+        Input string
+    sep : str, default = ';'
+        Separator
+
+    Returns
+    -------
+    0 if not x, x.count(sep) + 1, otherwise
+    """
+    if not x:
+        return 0
+    else:
+        return x.count(sep)+1
+
+def make_prompt_and_answer_table(prompts: List[str],
+        answers: List[str],
+        tokenized_prompts: str,
+        tokenized_answers: str,
+        drop_empty_rows: bool = False,
+        sep: str = ';',
+        ) -> Dict[str, str]:
+    """Create HTML tables for prompt and answer side of flashcards.
+
+    The parameters `prompts` and `answers` must have the same length,
+    and the output table will:
+    (1) start with N rows, where `N = len(prompts)`
+    (2) add another M rows, where M is the number of tokens in
+        `tokenized_prompts` and `tokenized_answers`. If this number of
+        tokens is not equal in the two variables, 'Y' will be set in
+        the 'tokenized_output' item of the return value, and no rows
+        will be added for (2).
+
+    Parameters
+    ----------
+    prompts : list[str]
+        Prompts for initial row(s) in table.
+    answers : list[str]
+        Answers for initial row(s) in table. Length of list must match
+        length of `prompts`.
+    tokenized_prompts : str
+        Prompt for second set of rows in table.
+    tokenized_answers : str
+        Answer for second set of rows in table.
+    drop_empty_rows : bool, default = False
+        Drop row(s) where both elements of `prompts` and `answers` are
+        False.
+    sep : str, default = ';'
+        Separator for `tokenized_prompts` and `tokenized_answers`.
+
+    Returns
+    -------
+    A dictionary with three elements:
+    - 'tokenized_omitted': 'Y' if `tokenized_prompts` and
+      `tokenized_answers` do not have the same number of tokens. In
+       this case, rows will not be added to the output table(s) for
+       these variables.
+    - 'prompt': str containing an HTML table with the prompts in the
+        first column and an empty second column.
+    - 'answer': str containing an HTML table with the prompts in the
+        first column and the answers in the second column.
+    """
+
+    if len(prompts) != len(answers):
+        raise ValueError(f'{len(prompts)=} and {len(answers)=}'
+                          ' must be equal')
+
+    n_pro = count_tokens(tokenized_prompts, sep=sep)
+    n_ans = count_tokens(tokenized_answers, sep=sep)
+
+    # p_list : information for the prompt
+    # a_list : information for the answer
+    p_list = ['<table>']
+    a_list = ['<table>']
+    for idx, val in enumerate(answers):
+        if val or prompts[idx] or not drop_empty_rows:
+            if not val: val = '&nbsp;'
+            p_list.append(f'<tr><td>{prompts[idx]}</td><td>&nbsp;</td></tr>')
+            a_list.append(f'<tr><td>{prompts[idx]}</td><td>{val}</td></tr>')
+
+    if n_pro == 0 or n_pro != n_ans:
+        a_list.append('</table>')
+        p_list.append('</table>')
+        return {'tokenized_omitted': 'Y',
+                'prompt': ''.join(p_list),
+                'answer': ''.join(a_list)}
+    else:
+        tp_list = tokenized_prompts.split(sep)
+        ta_list = tokenized_answers.split(sep)
+        for idx, val in enumerate(ta_list):
+            a_list.append(f'<tr><td>{tp_list[idx]}</td>'
+                              f'<td>{ta_list[idx]}</td></tr>')
+            p_list.append(f'<tr><td>{tp_list[idx]}</td><td></td></tr>')
+        a_list.append('</table>')
+        p_list.append('</table>')
+        return {'tokenized_omitted': '',
+                'prompt': ''.join(p_list),
+                'answer': ''.join(a_list)}
 
