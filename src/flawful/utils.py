@@ -848,7 +848,8 @@ def init_chapter(chapters: str,
     tags = ' '.join(taglist)
     return {'chapter': chapter, 'tags': tags}
 
-def count_tokens(x: str, sep: str =';') -> int:
+def count_tokens(x: str, sep: str =';',
+                 ignore_chars: Optional[str] = None) -> int:
     """Count number of tokens in string.
 
     Parameters
@@ -857,6 +858,9 @@ def count_tokens(x: str, sep: str =';') -> int:
         Input string
     sep : str, default = ';'
         Separator
+    ignore_chars : str, default = ''
+        If any character in the string is found, the token
+        will not be counted.
 
     Returns
     -------
@@ -864,6 +868,13 @@ def count_tokens(x: str, sep: str =';') -> int:
     """
     if not x:
         return 0
+    elif ignore_chars is not None:
+        ret_val = 0
+        ignore_set = set(ignore_chars)
+        for token in x.split(sep):
+            if ignore_set.isdisjoint(token):
+                ret_val = ret_val + 1
+        return ret_val
     else:
         return x.count(sep)+1
 
