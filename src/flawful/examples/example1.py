@@ -53,7 +53,8 @@
 #   fields (`de_table_answer`,`de_table_prompt`,`de3_omitted`). Refactor code
 #   per some linter warnings.
 # [20250121] Add `import csv` and change `quoting=3` to quoting=csv.QUOTE_NONE
-#   throughout.
+#   throughout. Add commented-out example that adds metadata to the output file
+#   header.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -742,3 +743,48 @@ dfout.to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}.txt'), sep='\t',
 dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
                   sep='\t', index=False, quoting=csv.QUOTE_NONE)
 
+#------------------------------------------------------------------------------
+# Alternate output that adds metadata to the file header
+#------------------------------------------------------------------------------
+# If using this method, the field names used in Anki must match the ones used
+# in the Python program (since they are being put in the file header).
+# Then, when selecting 'File' > 'Import' in Anki, the defaults in the import
+# dialog will be set as specified in the header.
+#
+# Users could also write a simple add-on to add a menu item that imports the
+# file automatically, without any selection, for example, by combining code
+# at the first two links below. For details, see:
+#
+#   https://addon-docs.ankiweb.net/a-basic-addon.html
+#   https://addon-docs.ankiweb.net/the-anki-module.html
+#   https://docs.ankiweb.net/importing/text-files.html
+#
+# The last link has most of the values for the metadata, but the '#if matches'
+# tag can (at least in v24.06.03) take values {'update current',
+# 'keep current', 'keep both'} (without the single quotes). No official
+# support is available from Anki for add-on writing (or from authors of this
+# package of course). See https://addon-docs.ankiweb.net/support.html for
+# support suggestions. Test any add-ons carefully on any Anki version they
+# will be run on.
+#------------------------------------------------------------------------------
+#dfout = select_output_columns(dfout)
+#tags_col = dfout.columns.get_loc('tags')
+#tab_separated_column_names = '\t'.join(dfout.columns)  # pylint: disable=invalid-name
+#metadata = ['#separator:Tab',
+#            '#deck:Flawful_Example_1',
+#            '#notetype:Flawful_Example_1',
+#            '#html:true',
+#           f'#tags column:{tags_col + 1}',
+#            '#if matches:update current',
+#           f'#columns:{tab_separated_column_names}',
+#           ]
+#metadata_df = pd.DataFrame(metadata)
+## This data frame only has one column, so we just pick a delimiter besides tab
+## that is not in the data frame anywhere.
+#metadata_df.to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}.txt'),
+#              sep='@', index=False, header=False, quoting=csv.QUOTE_NONE)
+#dfout.to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}.txt'), sep='\t',
+#             index=False, header=False, quoting=csv.QUOTE_NONE, mode='a')
+#dfout[0:0].to_csv(os.path.join(OUTPUT_DIR,
+#                               f'{OUTPUT_FILE_PREFIX}_fields.txt'),
+#                  sep='\t', index=False, quoting=csv.QUOTE_NONE)

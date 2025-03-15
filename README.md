@@ -372,6 +372,8 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
 # Release Notes (v0.2.1)
 
 * `example1.py`:
+  - Add commented-out code showing how to add metadata to header of output
+    file. (For brevity, it was not added to the excerpt above.)
   - Replace `quoting=3` with `quoting=csv.QUOTE_NONE` throughout.
 
 # Other Resources
