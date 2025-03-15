@@ -52,6 +52,8 @@
 # [20250112] Add call to `make_prompt_and_answer_table` and output the created
 #   fields (`de_table_answer`,`de_table_prompt`,`de3_omitted`). Refactor code
 #   per some linter warnings.
+# [20250121] Add `import csv` and change `quoting=3` to quoting=csv.QUOTE_NONE
+#   throughout.
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -68,6 +70,7 @@
 
 import re
 import os
+import csv
 
 import pandas as pd
 import numpy as np
@@ -265,7 +268,7 @@ def make_lb_dict():
     WordlistEntry object.
     """
     df_ = pd.read_csv(os.path.join(INPUT_DIR, 'reflist_LB.txt'),
-        comment='#', sep='\t', na_filter=False, quoting=3,
+        comment='#', sep='\t', na_filter=False, quoting=csv.QUOTE_NONE,
         names=['Full Word', 'Chapter/Section'])
 
     df_['key'] = df_['Full Word'].map(make_headword_reflist)
@@ -293,7 +296,7 @@ def make_lc_dict():
     WordlistEntry object.
     """
     df_ = pd.read_csv(os.path.join(INPUT_DIR, 'reflist_LC.txt'),
-        comment='#', sep='\t', na_filter=False, quoting=3)
+        comment='#', sep='\t', na_filter=False, quoting=csv.QUOTE_NONE)
 
     df_['key'] = df_['Base Word'].map(make_headword_reflist)
     flawful.dupkey(df_, ['key'], additional_vars=['Base Word'],
@@ -347,7 +350,8 @@ def make_okay_dict(input_file, desc):
     OkaylistEntry object.
     """
     int_df = pd.read_csv(input_file, comment='#', sep='\t',
-                         na_filter=False, quoting=3, names=['Word'])
+                         na_filter=False, quoting=csv.QUOTE_NONE,
+                         names=['Word'])
     flawful.dupkey(int_df, ['Word'], desc=desc, ifdup='print')
 
     int_df['dictkey'] = int_df['Word'].map(make_headword_reflist)
@@ -471,7 +475,8 @@ def make_known_no_audio_dict():
     and 'Reason' the value.
     """
     df_ = pd.read_csv(os.path.join(INPUT_DIR, 'known_no_audio.txt'),
-            comment='#', sep='\t', skiprows=(0), na_filter=False, quoting=3)
+            comment='#', sep='\t', skiprows=(0), na_filter=False,
+            quoting=csv.QUOTE_NONE)
     flawful.dupkey(df_, ['Word'], desc='known_no_audio.txt')
     #df['Reason'] = 'not found'
     df_.set_index('Word', inplace=True)
@@ -544,7 +549,7 @@ def write_de2_problems(df_, outfile):
     """
     df_out = df_[['chapter','de1','de2','de2_problems']]
     df_out = df_out[~(dfout.de2_problems == '')]
-    df_out.to_csv(outfile, sep='\t', index=False, quoting=3)
+    df_out.to_csv(outfile, sep='\t', index=False, quoting=csv.QUOTE_NONE)
 #------------------------------------------------------------------------------
 # End functions
 #------------------------------------------------------------------------------
@@ -585,7 +590,7 @@ de_okay_dicts['LC'] = make_okay_dict(os.path.join(INPUT_DIR,
 # Read input file that is one record per note for the flashcards.
 #------------------------------------------------------------------------------
 df = pd.read_csv(os.path.join(INPUT_DIR, 'input_notes.txt'), sep='\t',
-                 skiprows=(0), na_filter=False, quoting=3)
+                 skiprows=(0), na_filter=False, quoting=csv.QUOTE_NONE)
 
 flawful.dupkey(df, by_vars=['en1','part_of_speech'], desc='df',
                additional_vars=['input_note_id'], ifdup='error')
@@ -732,7 +737,8 @@ de_dicts.compare(dict_ids=WORDLISTS_TO_COMPARE)
 #------------------------------------------------------------------------------
 dfout = select_output_columns(dfout)
 dfout.to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}.txt'), sep='\t',
-             index=False, header=False, quoting=3)
+             index=False, header=False, quoting=csv.QUOTE_NONE)
 # make an empty dataset and just write the column names
 dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
-                  sep='\t', index=False, quoting=3)
+                  sep='\t', index=False, quoting=csv.QUOTE_NONE)
+

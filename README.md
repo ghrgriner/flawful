@@ -216,7 +216,7 @@ de_okay_dicts['LC'] = make_okay_dict(os.path.join(INPUT_DIR,
 # Read input file that is one record per note for the flashcards.
 #------------------------------------------------------------------------------
 df = pd.read_csv(os.path.join(INPUT_DIR, 'input_notes.txt'), sep='\t',
-                 skiprows=(0), na_filter=False, quoting=3)
+                 skiprows=(0), na_filter=False, quoting=csv.QUOTE_NONE)
 
 flawful.dupkey(df, by_vars=['en1','part_of_speech'], desc='df',
                additional_vars=['input_note_id'], ifdup='error')
@@ -363,25 +363,16 @@ de_dicts.compare(dict_ids=WORDLISTS_TO_COMPARE)
 #------------------------------------------------------------------------------
 dfout = select_output_columns(dfout)
 dfout.to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}.txt'), sep='\t',
-             index=False, header=False, quoting=3)
+             index=False, header=False, quoting=csv.QUOTE_NONE)
 # make an empty dataset and just write the column names
 dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
-                  sep='\t', index=False, quoting=3)
+                  sep='\t', index=False, quoting=csv.QUOTE_NONE)
 ```
 
-# Release Notes (v0.2.0)
+# Release Notes (v0.2.1)
 
-* Add `make_prompt_and_answer_table` function to put prompts and answers in an
-  HTML table. The wiki provides example flashcards with and without using this
-  table.
-
-* Example 1
-  - Split contents of `de_en_add` into `de1_hint`, `de_notes`, and
-    `de3_prompt`. The intent is that `de3` and `de3_prompt` should have the
-    same number of tokens so that it's clear which prompt is associated with
-    which answer.
-  - Add example code using the new `make_prompt_and_answer_table` function and
-    outputting the new variables created by the function.
+* `example1.py`:
+  - Replace `quoting=3` with `quoting=csv.QUOTE_NONE` throughout.
 
 # Other Resources
 
