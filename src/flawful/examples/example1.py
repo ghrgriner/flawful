@@ -1,5 +1,5 @@
 #    Example 1 (German) language-learning flashcards
-#    Copyright (C) 2024 Ray Griner (rgriner_fwd@outlook.com)
+#    Copyright (C) 2024-2025 Ray Griner (rgriner_fwd@outlook.com)
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -78,6 +78,8 @@ import numpy as np
 import flawful
 import flawful.german
 
+from de1_flagged import create_de1_flagged_output, check_flag_usage
+
 #------------------------------------------------------------------------------
 # Input / Output directories should be set by the user before running.
 # (Getting the directory names using os.environ can be replaced by just
@@ -116,6 +118,9 @@ COPY_AUDIO = True
 PRINT_UNUSED_AUDIO = True
 # two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
 OUTPUT_FILE_PREFIX = 'output_notes'
+# also two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
+DE1_FLAGGED_FILE_PREFIX = 'de1_flagged'
+
 MAX_CHAPTER = 20
 
 # Regular expression for strings where we don't want to remove the initial
@@ -698,6 +703,21 @@ df['de_table_answer'] = [ x['answer'] for x in make_rv ]
 df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
 
 #print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
+
+#------------------------------------------------------------------------------
+# Optional code to make 'DE1 Flagged' output file
+#------------------------------------------------------------------------------
+for de3, de3_prompt in df[['de3','de3_prompt']].values:
+    check_flag_usage(de3, de3_prompt, flags='°', sep=';')
+
+de1_output = create_de1_flagged_output(df,
+                 outfile=os.path.join(OUTPUT_DIR, DE1_FLAGGED_FILE_PREFIX),
+                 aud_dicts=aud_dicts, wordlists=de_dicts,
+                 str_to_wordlist_key=make_wordlist_key_notes,
+                 str_to_audio_key=make_audio_key_notes,
+                 select_keys_no_audio=filter_text_not_audio_pre,
+                 sep=',',
+                 flags='°†')
 
 #------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes

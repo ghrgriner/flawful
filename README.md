@@ -369,12 +369,23 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
                   sep='\t', index=False, quoting=csv.QUOTE_NONE)
 ```
 
-# Release Notes (v0.2.1)
+# Release Notes (v0.3.0)
 
-* `example1.py`:
+* `make_prompt_and_answer_table`:
+  - Add `table_class` and `tokenized_tr_class` input parameters where the user
+    can specify the `class` HTML attribute for the HTML table or each table
+    row.
+
+* `examples/example1.py`:
+  - Add call to new function defined in `de1_flagged.py` to create
+    de1_flagged.txt output.
   - Add commented-out code showing how to add metadata to header of output
     file. (For brevity, it was not added to the excerpt above.)
   - Replace `quoting=3` with `quoting=csv.QUOTE_NONE` throughout.
+
+* `examples/de1_flagged.py`:
+  - Add example code for handling flagged headwords / tokens in the primary
+    German answer field (`de1` in the example).
 
 # Other Resources
 
