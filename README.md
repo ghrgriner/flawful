@@ -325,6 +325,21 @@ df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
 #print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
 
 #------------------------------------------------------------------------------
+# Optional code to make 'DE1 Flagged' output file
+#------------------------------------------------------------------------------
+for de3, de3_prompt in df[['de3','de3_prompt']].values:
+    check_flag_usage(de3, de3_prompt, flags='°', sep=';')
+
+de1_output = create_de1_flagged_output(df,
+                 outfile=os.path.join(OUTPUT_DIR, DE1_FLAGGED_FILE_PREFIX),
+                 aud_dicts=aud_dicts, wordlists=de_dicts,
+                 str_to_wordlist_key=make_wordlist_key_notes,
+                 str_to_audio_key=make_audio_key_notes,
+                 select_keys_no_audio=filter_text_not_audio_pre,
+                 sep=',',
+                 flags='°†')
+
+#------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes
 #------------------------------------------------------------------------------
 de_dicts.print_unused_words(os.path.join(OUTPUT_DIR,
