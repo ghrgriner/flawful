@@ -120,6 +120,17 @@ PRINT_UNUSED_AUDIO = True
 OUTPUT_FILE_PREFIX = 'output_notes'
 # also two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
 DE1_FLAGGED_FILE_PREFIX = 'de1_flagged'
+# See docstring in examples/de1_flagged.txt for explanation of flags. In our
+# (non-shared) code, we use '°' to refer to tokens that we might want a
+# flashcard for and '†' for tokens that we don't (e.g., if we know a phrase
+# on DE3 is already entered on another card). In the example input files for
+# this public program, we only use '°' as flags, but there is no harm in
+# specifying '†' also.
+FLAGS = '°†'
+# Can differ from the above. This is only used when checking
+# `de3` vs `de3_prompt` to verify that when a token in one is flagged, so is
+# the corresponding token in the other.
+DE3_FLAGS_TO_CHECK = '°'
 
 MAX_CHAPTER = 20
 
@@ -674,7 +685,7 @@ df['de2_problems'] = [
 # '1/2 + A:1' means there are two answers in the de1 field (one is required
 # and the other optional), and one answer in the at1 field.
 df['de_target_number'] = [
-          flawful.german.make_target_prompt(de1=row[0], sep=',',
+          flawful.german.make_target_prompt(de1=row[0], sep=',', flags=FLAGS,
                                             at1=row[1], sd1=row[2])
           for row in df[['de1','at1','sd1']].values
           ]
@@ -708,7 +719,7 @@ df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
 # Optional code to make 'DE1 Flagged' output file
 #------------------------------------------------------------------------------
 for de3, de3_prompt in df[['de3','de3_prompt']].values:
-    check_flag_usage(de3, de3_prompt, flags='°', sep=';')
+    check_flag_usage(de3, de3_prompt, flags=DE3_FLAGS_TO_CHECK, sep=';')
 
 de1_output = create_de1_flagged_output(df,
                  outfile=os.path.join(OUTPUT_DIR, DE1_FLAGGED_FILE_PREFIX),
@@ -716,8 +727,7 @@ de1_output = create_de1_flagged_output(df,
                  str_to_wordlist_key=make_wordlist_key_notes,
                  str_to_audio_key=make_audio_key_notes,
                  select_keys_no_audio=filter_text_not_audio_pre,
-                 sep=',',
-                 flags='°†')
+                 sep=',', flags=FLAGS)
 
 #------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes

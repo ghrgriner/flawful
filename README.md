@@ -384,7 +384,15 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
                   sep='\t', index=False, quoting=csv.QUOTE_NONE)
 ```
 
-# Release Notes (v0.3.0)
+# Release Notes (v0.3.1)
+
+* `examples/de1_flagged.py`:
+  - Add example code for handling flagged headwords / tokens in the primary
+    German answer field (`de1` in the example).
+
+* `make_target_prompt`:
+  - Add `flags` parameter. The previous behavior was equivalent to `flags='°'`.
+    Note that the default is changed to `flags=''`.
 
 * `make_prompt_and_answer_table`:
   - Add `table_class` and `tokenized_tr_class` input parameters where the user
@@ -397,10 +405,6 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
   - Add commented-out code showing how to add metadata to header of output
     file. (For brevity, it was not added to the excerpt above.)
   - Replace `quoting=3` with `quoting=csv.QUOTE_NONE` throughout.
-
-* `examples/de1_flagged.py`:
-  - Add example code for handling flagged headwords / tokens in the primary
-    German answer field (`de1` in the example).
 
 # Other Resources
 

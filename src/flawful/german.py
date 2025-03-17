@@ -209,7 +209,7 @@ def make_sortable_str(x: str) -> str:
     res3 = res2.replace('ä','a').replace('ö','o').replace('ü','u')
     return res3.replace('ß','ss')
 
-def make_target_prompt(de1: str, sep: str,
+def make_target_prompt(de1: str, sep: str, flags: str = '',
                        at1: Optional[str] = None,
                        sd1: Optional[str] = None,
                       ) -> str:
@@ -221,6 +221,8 @@ def make_target_prompt(de1: str, sep: str,
         Input string with the words in the answer
     sep : str
         Separator for tokenizing `de1`, `at1`, and `sd1`.
+    flags : str, default = ''
+        Flags. Each character in the string is a unique flag. The
     at1 : str, optional
         Austrian answer
     sd1 : str, optional
@@ -232,10 +234,11 @@ def make_target_prompt(de1: str, sep: str,
     will represent the number of tokens in `de1`, which will typically
     be the German words/phrases commonly used in Germany (Deutschland)
     that will serve as the answer of the flashcard. If a token contains
-    '°', the interpretation is that the token is for passive learning,
-    and the learner need not be able to produce the answer to get the
-    card correct. In this case, the string generated is 'N1/N2', where
-    N1 are the number of tokens without '°' and N2 is the total.
+    any character in `flags`, the interpretation is that the token is for
+    passive learning, and the learner need not be able to produce the
+    answer to get the card correct. In this case, the string generated is
+    'N1/N2', where N1 are the number of tokens without no character in
+    `flags` and N2 is the total.
 
     To this initial string is added the string '+ A:N3' if `at1` is
     populated (N3 is the number of tokens in `at1`) and '+ CH:N4' if
@@ -250,7 +253,7 @@ def make_target_prompt(de1: str, sep: str,
         sd1_list = sd1.split(sep)
     else: sd1_list = []
     de1_tot_size = len(de1_list)
-    de1_imp_size = len([val for val in de1_list if '°' not in val])
+    de1_imp_size = len([val for val in de1_list if set(flags).isdisjoint(val)])
 
     if de1_imp_size == de1_tot_size:
         de_target = f'{de1_imp_size}'
