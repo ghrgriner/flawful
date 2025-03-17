@@ -882,8 +882,10 @@ def make_prompt_and_answer_table(prompts: List[str],
         answers: List[str],
         tokenized_prompts: str,
         tokenized_answers: str,
+        tokenized_tr_class: Optional[str] = None,
         drop_empty_rows: bool = False,
         sep: str = ';',
+        table_class: Optional[str] = None,
         ) -> Dict[str, str]:
     """Create HTML tables for prompt and answer side of flashcards.
 
@@ -907,11 +909,17 @@ def make_prompt_and_answer_table(prompts: List[str],
         Prompt for second set of rows in table.
     tokenized_answers : str
         Answer for second set of rows in table.
+    tokenized_tr_class : str
+        If not None or '', assign this value to the `class` element of
+        the HTML tr tag, for second set of rows in table.
     drop_empty_rows : bool, default = False
         Drop row(s) where both elements of `prompts` and `answers` are
         False.
     sep : str, default = ';'
         Separator for `tokenized_prompts` and `tokenized_answers`.
+    table_class : str, optional default = None
+        If not None or '', assign this value to the `class` element of
+        the HTML table tag.
 
     Returns
     -------
@@ -933,10 +941,13 @@ def make_prompt_and_answer_table(prompts: List[str],
     n_pro = count_tokens(tokenized_prompts, sep=sep)
     n_ans = count_tokens(tokenized_answers, sep=sep)
 
+    if table_class is None or table_class == '': table_tag = '<table>'
+    else: table_tag = f'<table class={table_class}>'
+
     # p_list : information for the prompt
     # a_list : information for the answer
-    p_list = ['<table>']
-    a_list = ['<table>']
+    p_list = [f'{table_tag}']
+    a_list = [f'{table_tag}']
     for idx, val in enumerate(answers):
         if val or prompts[idx] or not drop_empty_rows:
             if not val: val = '&nbsp;'
@@ -958,10 +969,19 @@ def make_prompt_and_answer_table(prompts: List[str],
     else:
         tp_list = tokenized_prompts.split(sep)
         ta_list = tokenized_answers.split(sep)
+        if tokenized_tr_class is None:
+            tc_list = [sep] * (n_pro)
+        else:
+            tc_list = tokenized_tr_class.split(sep)
         for idx, val in enumerate(ta_list):
-            a_list.append(f'<tr><td>{tp_list[idx]}</td>'
+            tr_class = tc_list[idx].strip()
+            if tr_class:
+                tr_tag = f'<tr class="{tr_class}">'
+            else:
+                tr_tag = '<tr>'
+            a_list.append(f'{tr_tag}<td>{tp_list[idx]}</td>'
                               f'<td>{ta_list[idx]}</td></tr>')
-            p_list.append(f'<tr><td>{tp_list[idx]}</td><td></td></tr>')
+            p_list.append(f'{tr_tag}<td>{tp_list[idx]}</td><td></td></tr>')
         a_list.append('</table>')
         p_list.append('</table>')
         return {'tokenized_omitted': '',
