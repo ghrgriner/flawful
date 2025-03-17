@@ -383,7 +383,7 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
                   sep='\t', index=False, quoting=csv.QUOTE_NONE)
 ```
 
-# Release Notes (v0.3.1)
+# Release Notes (v0.4.0)
 
 * `examples/de1_flagged.py`:
   - Add example code for handling flagged headwords / tokens in the primary
@@ -400,7 +400,13 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
 
 * `examples/example1.py`:
   - Add call to new function defined in `de1_flagged.py` to create
-    de1_flagged.txt output.
+    `de1_flagged.txt` output.
+  - Add `de3_rev_table`,`de3_rev_table_prompt`, `de3_rev_omitted` to
+    `output_notes.txt`. These fields make HTML tables for the 'reverse'
+    card where the prompt is the German word and the answer the English
+    word (except `de2`, which contains the secondary German answer, like
+    noun plurals and verb conjugations is also moved to be part of the
+    answer).
   - Add commented-out code showing how to add metadata to header of output
     file. (For brevity, it was not added to the excerpt above.)
   - Replace `quoting=3` with `quoting=csv.QUOTE_NONE` throughout.

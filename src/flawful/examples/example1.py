@@ -698,6 +698,7 @@ df['has_german_audio'] = df['de_audio'] != ''
 # The fields created above are sufficient, but we would like to go a step
 # further and put the prompts and answers in HTML format.
 #------------------------------------------------------------------------------
+df['n_de1'] = df.de1.map(flawful.count_tokens)
 df['n_de3'] = df.de3.map(flawful.count_tokens)
 df['n_de3_prompt'] = df.de3_prompt.map(flawful.count_tokens)
 df['n_match'] = np.where( df.n_de3 == df.n_de3_prompt, 'Y', 'N')
@@ -739,6 +740,14 @@ make_rev_rv2 = [
                 'de3_color']].values
           ]
 df['de3_rev_table'] = [ x['answer'] for x in make_rev_rv2 ]
+
+# Suppose we decide ahead of time that for each note we only want to study one
+# of the cards, then we can make a tag indicating which side we want to keep.
+# We can then easily suspend the other card in Anki. We could extend this by
+# also having a tag 'StudyBoth' or by having a column in the input txt file
+# that can override this rule, etc...
+df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
+                                ' StudyEN', ' StudyDE')
 
 #print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
 
