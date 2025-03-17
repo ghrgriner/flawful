@@ -294,7 +294,7 @@ df['de2_problems'] = [
 # '1/2 + A:1' means there are two answers in the de1 field (one is required
 # and the other optional), and one answer in the at1 field.
 df['de_target_number'] = [
-          flawful.german.make_target_prompt(de1=row[0], sep=',',
+          flawful.german.make_target_prompt(de1=row[0], sep=',', flags=FLAGS,
                                             at1=row[1], sd1=row[2])
           for row in df[['de1','at1','sd1']].values
           ]
@@ -328,7 +328,7 @@ df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
 # Optional code to make 'DE1 Flagged' output file
 #------------------------------------------------------------------------------
 for de3, de3_prompt in df[['de3','de3_prompt']].values:
-    check_flag_usage(de3, de3_prompt, flags='°', sep=';')
+    check_flag_usage(de3, de3_prompt, flags=DE3_FLAGS_TO_CHECK, sep=';')
 
 de1_output = create_de1_flagged_output(df,
                  outfile=os.path.join(OUTPUT_DIR, DE1_FLAGGED_FILE_PREFIX),
@@ -336,8 +336,7 @@ de1_output = create_de1_flagged_output(df,
                  str_to_wordlist_key=make_wordlist_key_notes,
                  str_to_audio_key=make_audio_key_notes,
                  select_keys_no_audio=filter_text_not_audio_pre,
-                 sep=',',
-                 flags='°†')
+                 sep=',', flags=FLAGS)
 
 #------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes
