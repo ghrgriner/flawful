@@ -304,6 +304,7 @@ df['has_german_audio'] = df['de_audio'] != ''
 # The fields created above are sufficient, but we would like to go a step
 # further and put the prompts and answers in HTML format.
 #------------------------------------------------------------------------------
+df['n_de1'] = df.de1.map(flawful.count_tokens)
 df['n_de3'] = df.de3.map(flawful.count_tokens)
 df['n_de3_prompt'] = df.de3_prompt.map(flawful.count_tokens)
 df['n_match'] = np.where( df.n_de3 == df.n_de3_prompt, 'Y', 'N')
@@ -321,6 +322,38 @@ make_rv = [
 df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
 df['de_table_answer'] = [ x['answer'] for x in make_rv ]
 df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
+
+# Make table where German words are in the first column
+make_rev_rv1 = [
+    flawful.make_prompt_and_answer_table(
+        prompts=[r[1],''], answers=[r[0],''],
+        tokenized_prompts=r[4], tokenized_answers=r[3],
+        drop_empty_rows=True)
+   for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
+                'de3_color']].values
+          ]
+df['de3_rev_table_prompt'] = [ x['prompt'] for x in make_rev_rv1 ]
+df['de3_rev_omitted'] = [ x['tokenized_omitted'] for x in make_rev_rv1 ]
+
+# The 'answer' side for the above. Only difference is `de2` is put
+# in the first column of the second row.
+make_rev_rv2 = [
+    flawful.make_prompt_and_answer_table(
+        prompts=[r[1],r[2]], answers=[r[0],''],
+        tokenized_prompts=r[4], tokenized_answers=r[3],
+        drop_empty_rows=True)
+   for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
+                'de3_color']].values
+          ]
+df['de3_rev_table'] = [ x['answer'] for x in make_rev_rv2 ]
+
+# Suppose we decide ahead of time that for each note we only want to study one
+# of the cards, then we can make a tag indicating which side we want to keep.
+# We can then easily suspend the other card in Anki. We could extend this by
+# also having a tag 'StudyBoth' or by having a column in the input txt file
+# that can override this rule, etc...
+df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
+                                ' StudyEN', ' StudyDE')
 
 #print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
 
@@ -407,6 +440,13 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
     word (except `de2`, which contains the secondary German answer, like
     noun plurals and verb conjugations is also moved to be part of the
     answer).
+    - Add example code to create either tag 'StudyEN' or 'StudyDE' that
+    can be used to easily suspend cards we don't want to study. In the
+    example we create the tags assuming the rule that we will study
+    the 'English to German' direction for notes before Chapter 5 or with
+    more than one German answer in `de1` and we will study the 'German to English'
+    direction otherwise. Note that to implement this rule, the user would
+    still have to suspend the desired cards within Anki.
   - Add commented-out code showing how to add metadata to header of output
     file. (For brevity, it was not added to the excerpt above.)
   - Replace `quoting=3` with `quoting=csv.QUOTE_NONE` throughout.
