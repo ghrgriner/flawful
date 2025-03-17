@@ -970,7 +970,7 @@ def make_prompt_and_answer_table(prompts: List[str],
         tp_list = tokenized_prompts.split(sep)
         ta_list = tokenized_answers.split(sep)
         if tokenized_tr_class is None:
-            tc_list = [sep] * (n_pro)
+            tc_list = [''] * (n_pro)
         else:
             tc_list = tokenized_tr_class.split(sep)
         for idx, val in enumerate(ta_list):
