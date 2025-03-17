@@ -152,7 +152,9 @@ def select_output_columns(df_):
     return df_[['note_id','en1','part_of_speech','de_target_number',
            'de1','de1_at1_sd1_color','de2','de3','de3_color','de_xref_color',
            'de_xref_ignore_ch_color','de1_hint','de_table_prompt',
-           'de_table_answer','de3_omitted','de_notes','de3_prompt',
+           'de_table_answer','de3_omitted',
+           'de3_rev_table','de3_rev_table_prompt','de3_rev_omitted',
+           'de_notes','de3_prompt',
            'de_conf','de_pronun','dib_sentences','at1','sd1','de_audio',
            'de_no_audio','chapter','de_sentences','tags']]
 
@@ -567,6 +569,7 @@ def write_de2_problems(df_, outfile):
     df_out = df_[['chapter','de1','de2','de2_problems']]
     df_out = df_out[~(dfout.de2_problems == '')]
     df_out.to_csv(outfile, sep='\t', index=False, quoting=csv.QUOTE_NONE)
+
 #------------------------------------------------------------------------------
 # End functions
 #------------------------------------------------------------------------------
@@ -712,6 +715,30 @@ make_rv = [
 df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
 df['de_table_answer'] = [ x['answer'] for x in make_rv ]
 df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
+
+# Make table where German words are in the first column
+make_rev_rv1 = [
+    flawful.make_prompt_and_answer_table(
+        prompts=[r[1],''], answers=[r[0],''],
+        tokenized_prompts=r[4], tokenized_answers=r[3],
+        drop_empty_rows=True)
+   for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
+                'de3_color']].values
+          ]
+df['de3_rev_table_prompt'] = [ x['prompt'] for x in make_rev_rv1 ]
+df['de3_rev_omitted'] = [ x['tokenized_omitted'] for x in make_rev_rv1 ]
+
+# The 'answer' side for the above. Only difference is `de2` is put
+# in the first column of the second row.
+make_rev_rv2 = [
+    flawful.make_prompt_and_answer_table(
+        prompts=[r[1],r[2]], answers=[r[0],''],
+        tokenized_prompts=r[4], tokenized_answers=r[3],
+        drop_empty_rows=True)
+   for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
+                'de3_color']].values
+          ]
+df['de3_rev_table'] = [ x['answer'] for x in make_rev_rv2 ]
 
 #print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
 
