@@ -31,6 +31,9 @@ such improvements.
 
 # Functionality
 
+This section uses terms defined on the [Background and Definitions](https://github.com/ghrgriner/flawful/wiki/Background-and-Definitions)
+page of the wiki.
+
 At a high level, the most important features are integrating audio
 information into the deck, integrating information from multiple
 reference lists into the deck (for example, to assign each note a
@@ -38,7 +41,7 @@ chapter for study), and creating tags useful for organizing studying.
 
 Functionality applicable to most languages:
 
-* Add audio files to deck and print the keys for the tokens where
+* Add audio files to a deck and print the keys for the tokens where
 no matching audio was found. User-defined functions can be used to
 filter the keys automatically (e.g., by assigned chapter or excluding
 keys with spaces or special characters) so that the number printed
