@@ -153,7 +153,7 @@ def select_output_columns(df_):
            'de1','de1_at1_sd1_color','de2','de3','de3_color','de_xref_color',
            'de_xref_ignore_ch_color','de1_hint','de_table_prompt',
            'de_table_answer','de3_omitted',
-           'de3_rev_table','de3_rev_table_prompt','de3_rev_omitted',
+           'de_rev_table','de_rev_table_prompt','de3_rev_omitted',
            'de_notes','de3_prompt',
            'de_conf','de_pronun','dib_sentences','at1','sd1','de_audio',
            'de_no_audio','chapter','de_sentences','tags']]
@@ -726,7 +726,7 @@ make_rev_rv1 = [
    for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
                 'de3_color']].values
           ]
-df['de3_rev_table_prompt'] = [ x['prompt'] for x in make_rev_rv1 ]
+df['de_rev_table_prompt'] = [ x['prompt'] for x in make_rev_rv1 ]
 df['de3_rev_omitted'] = [ x['tokenized_omitted'] for x in make_rev_rv1 ]
 
 # The 'answer' side for the above. Only difference is `de2` is put
@@ -739,7 +739,7 @@ make_rev_rv2 = [
    for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
                 'de3_color']].values
           ]
-df['de3_rev_table'] = [ x['answer'] for x in make_rev_rv2 ]
+df['de_rev_table'] = [ x['answer'] for x in make_rev_rv2 ]
 
 # Suppose we decide ahead of time that for each note we only want to study one
 # of the cards, then we can make a tag indicating which side we want to keep.
