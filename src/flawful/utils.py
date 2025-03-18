@@ -910,16 +910,17 @@ def make_prompt_and_answer_table(prompts: List[str],
     tokenized_answers : str
         Answer for second set of rows in table.
     tokenized_tr_class : str
-        If not None or '', assign this value to the `class` element of
-        the HTML tr tag, for second set of rows in table.
+        If not None, get the token for a given row. If the token
+        evaluates to true, put the value in double-quotes and assign it
+        to the `class` element of the HTML tr tag.
     drop_empty_rows : bool, default = False
         Drop row(s) where both elements of `prompts` and `answers` are
         False.
     sep : str, default = ';'
         Separator for `tokenized_prompts` and `tokenized_answers`.
     table_class : str, optional default = None
-        If not None or '', assign this value to the `class` element of
-        the HTML table tag.
+        If not None or '', put the value in double-quotes and assign it
+        to the `class` element of the HTML table tag.
 
     Returns
     -------
@@ -942,7 +943,7 @@ def make_prompt_and_answer_table(prompts: List[str],
     n_ans = count_tokens(tokenized_answers, sep=sep)
 
     if table_class is None or table_class == '': table_tag = '<table>'
-    else: table_tag = f'<table class={table_class}>'
+    else: table_tag = f'<table class="{table_class}">'
 
     # p_list : information for the prompt
     # a_list : information for the answer
