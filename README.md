@@ -271,41 +271,6 @@ dfout[0:0].to_csv(os.path.join(OUTPUT_DIR, f'{OUTPUT_FILE_PREFIX}_fields.txt'),
                   sep='\t', index=False, quoting=csv.QUOTE_NONE)
 ```
 
-# Release Notes (v0.4.0)
-
-* `examples/de1_flagged.py`:
-  - Add example code for handling flagged headwords / tokens in the primary
-    German answer field (`de1` in the example).
-
-* `make_target_prompt`:
-  - Add `flags` parameter. The previous behavior was equivalent to `flags='°'`.
-    Note that the default is changed to `flags=''`.
-
-* `make_prompt_and_answer_table`:
-  - Add `table_class` and `tokenized_tr_class` input parameters where the user
-    can specify the `class` HTML attribute for the HTML table or each table
-    row.
-
-* `examples/example1.py`:
-  - Add call to new function defined in `de1_flagged.py` to create
-    `de1_flagged.txt` output.
-  - Add `de3_rev_table`,`de3_rev_table_prompt`, `de3_rev_omitted` to
-    `output_notes.txt`. These fields make HTML tables for the 'reverse'
-    card where the prompt is the German word and the answer the English
-    word (except `de2`, which contains the secondary German answer, like
-    noun plurals and verb conjugations is also moved to be part of the
-    answer).
-    - Add example code to create either tag 'StudyEN' or 'StudyDE' that
-    can be used to easily suspend cards we don't want to study. In the
-    example we create the tags assuming the rule that we will study
-    the 'English to German' direction for notes before Chapter 5 or with
-    more than one German answer in `de1` and we will study the 'German to English'
-    direction otherwise. Note that to implement this rule, the user would
-    still have to suspend the desired cards within Anki.
-  - Add commented-out code showing how to add metadata to header of output
-    file. (For brevity, it was not added to the excerpt above.)
-  - Replace `quoting=3` with `quoting=csv.QUOTE_NONE` throughout.
-
 # Other Resources
 
 We have also authored the `wikwork` package that is designed to

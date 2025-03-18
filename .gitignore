@@ -9,3 +9,4 @@ pylintrc
 !/.gitignore
 example1.out
 /TODO.txt
+RELEASE_NOTES.txt
