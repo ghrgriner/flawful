@@ -45,7 +45,7 @@ information into the deck, integrating information from multiple
 reference lists into the deck (for example, to assign each note a
 chapter for study), and creating tags useful for organizing studying.
 
-Functionality applicable to most languages:
+The following functionality is applicable to most languages:
 
 * Add audio files to a deck and print the keys for the tokens where
 no matching audio was found. User-defined functions can be used to
@@ -85,8 +85,8 @@ Austrian and/or Swiss-German), so that a prompt of ‘1 + A:1’
 indicates the expected answer includes one word used in Germany and
 one used in Austria.
 
-Functionality specific to German (although applicable with slight
-modifications to other languages):
+The following functionality is specific to German (but is also applicable
+with slight modifications to other languages):
 
 * Users can indicate long/short vowels in designated fields of the
 input notes using ‘[[v]]’ and ‘[v]’, respectively, and the
