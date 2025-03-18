@@ -29,69 +29,6 @@ for users who have started with a pre-made deck that they now feel
 could be improved, as it provides concrete suggestions and code for
 such improvements.
 
-# Background and Definitions
-
-## Program creates cards / notes
-
-The purpose of the package is to provide tools for converting a
-language learning ‘database’ stored in a flat file (e.g., which
-might have been exported from a spreadsheet) into flashcards for
-studying. More precisely, to use the terminology of Anki software, this
-generates notes which can be used to generate one or more flashcard per
-note in Anki, but in the rest of this documentation, we will use the
-terms flashcards or notes to refer to a record in the generated output.
-
-## Reference lists
-
-The term ‘reference list’ refers to some list of words, typically
-not created by the user. For example, one reference list might be a
-list of A1 words from a testing authority, another reference list
-might be a list of words from an A1 textbook or website, a third
-reference list is a list of A2 words, etc... One of the purposes of
-the program is to provide tools for merging the input notes with the
-reference list(s) [for example, to check whether all words in a given
-reference list are in an input file]. A reference list is a list of
-words or phrases, and it might contain additional information, such
-as example sentences for the word or the chapter the word appears in
-the reference.
-
-## Fields
-
-The input file can have multiple fields for the target language. For
-example, if the input file was created by export from a spreadsheet,
-each field represents a column in the original spreadsheet.
-
-## Tokens
-
-We typically use an input notes file that is one row per English
-word with a given meaning (or multiple English words with the same
-meaning, but for simplicity, we describe the case with a single
-English word). There may be multiple German words with this meaning,
-in which case more than one German word may be entered in a single
-German field. These multiple words would typically be separated by
-commas or semi-colons as specified by the user. A token refers to
-each piece of the field after splitting the field on the comma or
-semi-colon delimiter.
-
-## Headwords
-
-The term ‘headword’ refers to the base form of a word that is
-usually found in a dictionary. This is sometimes also called the
-lemma. For example, in German the definite article indicates the
-gender of the noun. The definite article and plural form are commonly
-presented in lists of vocabulary, but neither is considered part of
-the base form. Similarly, in German the infinitive form of the verb
-is typically considered the base form. Therefore, when an reference
-list of German words is provided, the headword is calculated by
-removing the definite article or extracting the infinitive according
-to some pre-determined rule (e.g., it might be known that for all
-records representing verbs, the infinitive is the first verb form
-listed). In the package, ‘headword’ refers to the keys for the
-dictionaries containing audio file information or the dictionaries
-representing reference lists. To avoid confusion, we call a string
-a ‘lookup key’ if it will be used as a lookup in these two sets
-of dictionaries, but if we are unsure if the lookup will be successful.
-
 # Functionality
 
 At a high level, the most important features are integrating audio
