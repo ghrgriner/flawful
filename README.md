@@ -324,52 +324,10 @@ df['de_table_answer'] = [ x['answer'] for x in make_rv ]
 df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
 
 # Make table where German words are in the first column
-make_rev_rv1 = [
-    flawful.make_prompt_and_answer_table(
-        prompts=[r[1],''], answers=[r[0],''],
-        tokenized_prompts=r[4], tokenized_answers=r[3],
-        drop_empty_rows=True)
-   for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
-                'de3_color']].values
-          ]
-df['de_rev_table_prompt'] = [ x['prompt'] for x in make_rev_rv1 ]
-df['de3_rev_omitted'] = [ x['tokenized_omitted'] for x in make_rev_rv1 ]
+# ... (omitting for brevity)
 
-# The 'answer' side for the above. Only difference is `de2` is put
-# in the first column of the second row.
-make_rev_rv2 = [
-    flawful.make_prompt_and_answer_table(
-        prompts=[r[1],r[2]], answers=[r[0],''],
-        tokenized_prompts=r[4], tokenized_answers=r[3],
-        drop_empty_rows=True)
-   for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
-                'de3_color']].values
-          ]
-df['de_rev_table'] = [ x['answer'] for x in make_rev_rv2 ]
-
-# Suppose we decide ahead of time that for each note we only want to study one
-# of the cards, then we can make a tag indicating which side we want to keep.
-# We can then easily suspend the other card in Anki. We could extend this by
-# also having a tag 'StudyBoth' or by having a column in the input txt file
-# that can override this rule, etc...
-df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
-                                ' StudyEN', ' StudyDE')
-
-#print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
-
-#------------------------------------------------------------------------------
 # Optional code to make 'DE1 Flagged' output file
-#------------------------------------------------------------------------------
-for de3, de3_prompt in df[['de3','de3_prompt']].values:
-    check_flag_usage(de3, de3_prompt, flags=DE3_FLAGS_TO_CHECK, sep=';')
-
-de1_output = create_de1_flagged_output(df,
-                 outfile=os.path.join(OUTPUT_DIR, DE1_FLAGGED_FILE_PREFIX),
-                 aud_dicts=aud_dicts, wordlists=de_dicts,
-                 str_to_wordlist_key=make_wordlist_key_notes,
-                 str_to_audio_key=make_audio_key_notes,
-                 select_keys_no_audio=filter_text_not_audio_pre,
-                 sep=',', flags=FLAGS)
+# ... (omitting for brevity)
 
 #------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes
