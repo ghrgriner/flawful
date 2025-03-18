@@ -32,12 +32,13 @@ such improvements.
 # Functionality
 
 This section uses terms defined on the [Background and Definitions](https://github.com/ghrgriner/flawful/wiki/Background-and-Definitions)
-page of the wiki. Briefly, reference lists are lists of words not
+page of the wiki. Briefly, *reference lists* are lists of words not
 created by the user (e.g., a list might be the A1 words published
 by some testing authority or a list of words from an A1 textbook
-or website). The input file created by the user allows multiple
-target-language words or phrases to be entered in the answer
-fields. We refer to these words or phrases as 'tokens'.
+or website). Also, some fields in the the input file created by
+the user allow multiple target-language words or phrases to be
+entered in the answer fields. We refer to each such words or phrase
+as a *token*.
 
 At a high level, the most important features are integrating audio
 information into the deck, integrating information from multiple
