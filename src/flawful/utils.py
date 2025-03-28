@@ -942,8 +942,10 @@ def make_prompt_and_answer_table(prompts: List[str],
     n_pro = count_tokens(tokenized_prompts, sep=sep)
     n_ans = count_tokens(tokenized_answers, sep=sep)
 
-    if table_class is None or table_class == '': table_tag = '<table>'
-    else: table_tag = f'<table class="{table_class}">'
+    if table_class is None or table_class == '':
+        table_tag = '<table>'
+    else:
+        table_tag = f'<table class="{table_class}">'
 
     # p_list : information for the prompt
     # a_list : information for the answer
@@ -988,4 +990,130 @@ def make_prompt_and_answer_table(prompts: List[str],
         return {'tokenized_omitted': '',
                 'prompt': ''.join(p_list),
                 'answer': ''.join(a_list)}
+
+def columns_with_prefix_to_list(df: pd.DataFrame, prefix: str):
+    """Return a list of lists with values from the columns with the prefix.
+
+    The purpose is so that the caller can create a new column that has as
+    its value a list of the values in the column identified by the prefix.
+
+    For example, if `df` has columns `var_1` - `var_N`, one might call:
+    df['vars'] = flawful.columns_with_prefix_to_list(df, 'var_')
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input data frame
+    prefix : str
+        Prefix for identifying column names in `df`.
+    """
+    cols = pd.Series(df.columns).str.startswith(prefix)
+    return df[ df.columns[cols] ].values.tolist()
+
+def braces_to_class(x, html_class) -> str:
+    """Replace braces with HTML div statement with specified `class`.
+    """
+    return x.replace('{',f'<div class={html_class}>').replace('}','</div>')
+
+def make_hint_target_and_answer(answer1: str, answer2: str,
+                                answer1_hint : str = '1',
+                                answer2_hint : str = '2',
+                                sep : str = ''):
+    """Make hint, target, and single answer from two answers.
+
+    The expected use case is that perhaps the user has two answers to a
+    given prompt, one in their native language and another in the target
+    language, but both are not always populated. This creates a single
+    output answer that combines the two inputs, a hint indicating which
+    answer(s) are present, and 'target', a count of the number of tokens
+    in `answer1` (if populated) and otherwise in `answer2`.
+
+    Parameters
+    ----------
+    answer1 : str
+        First answer
+    answer2 : str
+        Second answer
+    answer1_hint : str, optional (default='1')
+        String to add to the `hint` output when `answer1` populated.
+    answer2_hint : str, optional (default='2')
+        String to add to the `hint` output when `answer2` populated.
+    sep: str, optional (default='')
+        Separator to use when generating `target` output.
+
+    Returns
+    -------
+    A dictionary with elements `hint`, `answer`, and `target`.
+    For `hint` and `answer` below, the first string is returned
+    when both `answer1` and `answer2` are populated, the second
+    when only `answer1` is populated, and the third when `answer2`
+    is populated.
+
+    - hint: f'[{answer1_hint}/{answer2_hint}]', f'[{answer1_hint}]',
+            or f'[{answer2_hint}]'
+    - answer: f'{answer1} ({answer2})', f'{answer1}', or f'{answer2}'
+    - target: define the 'primary answer' as `answer1` if populated,
+        and otherwise, `answer2`. If `sep == ''`, return '0'/'1' if
+        primary answer is ''/blanks or not. Otherwise, return string
+        giving number of tokens using separator `sep`.
+    """
+    if answer1 and answer2:
+        hint = f'[{answer1_hint}/{answer2_hint}]'
+        answer_for_target = answer1
+        answer = answer1 + ' (' + answer2 + ')'
+    elif answer1:
+        hint = f'[{answer1_hint}]'
+        answer_for_target = answer1
+        answer = answer1
+    else:
+        hint = f'[{answer2_hint}]'
+        answer_for_target = answer2
+        answer = answer2
+
+    if sep:
+        target = str(len(answer_for_target.split(sep)))
+    else:
+        target = str(int(bool(answer_for_target.strip())))
+
+    return {'hint': hint, 'answer': answer, 'target': target}
+
+def combine_answer_lists(prompts, answers_1, answers_2,
+                         answer1_hint, answer2_hint, prepend_hint=True):
+    """Combine input prompts and two lists of answers.
+
+    The three input lists must be the same length.
+
+    Returns
+    -------
+    A dictionary with elements 'prompts', 'answers', and 'hints',
+    which are equal-length lists. List elements are included in the output
+    if the element `x` from `prompts` satisfies `if x`. Then,
+    `make_hint_target_and_answer` is called on the corresponding
+    elements of `answers_1` and `answers_2`, and the `answer` and `hint`
+    elements of that call are the `answer` and `hint` elements of this
+    function's output. If `prepend_hint` is true, the returned `prompt`
+    element will be the `hint` element + ': ' + the input `prompt` element.
+    """
+
+    if   (len(prompts)   != len(answers_1)
+       or len(answers_1) != len(answers_2)):
+        raise ValueError('elements have different length'
+                         f'{prompts=},{answers_1=},{answers_2=}')
+    out_prompts = []
+    out_answers = []
+    out_hints = []
+    for idx, val in enumerate(prompts):
+        if val:
+            mhta = make_hint_target_and_answer(
+                answer1=answers_1[idx],    answer2=answers_2[idx],
+                answer1_hint=answer1_hint, answer2_hint=answer2_hint, sep='')
+            out_hints.append(mhta['hint'])
+            out_answers.append(mhta['answer'])
+            if prepend_hint:
+                out_prompts.append(mhta['hint'] + ': ' + val)
+            else:
+                out_prompts.append(val)
+
+    return { 'prompts': out_prompts, 'answers': out_answers,
+             'hints': out_hints }
 
