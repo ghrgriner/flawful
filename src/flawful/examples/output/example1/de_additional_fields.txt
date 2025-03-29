@@ -1,1 +1,1 @@
-note_id	en1	part_of_speech	de_defs	def_type	de1	de2	de_pronun	de_audio	de1_color	chapter	Tags
+note_id	en1	part_of_speech	de_defs	def_type	de1	de2	de_pronun	de_audio	de1_color	chapter	de_table_answer	de_table_prompt	has_table	no_table	pronun	notes	Tags

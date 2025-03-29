@@ -1,0 +1,2 @@
+id	de1	de2	de_answer	en_answer	chaplist	de1_hint	part_of_speech	pronun	notes	de3p_1	de3d_1	de3e_1	de3p_2	de3d_2	de3e_2
+1	irre		verrückt	crazy		a hint	A			du bist {irre}!	du bist {verrückt}!	you're {crazy}!	das macht mich {irre}!		that makes me {crazy}!

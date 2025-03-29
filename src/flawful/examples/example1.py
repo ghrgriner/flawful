@@ -121,8 +121,8 @@ OUTPUT_FILE_PREFIX = 'output_notes'
 # also two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
 DE_ADD_OUTPUT_FILE_PREFIX = 'de_additional'
 # Set the below to `None` if the file is not being used.
+#DE_ADDITIONAL_INPUT_FILE = None
 DE_ADDITIONAL_INPUT_FILE = 'additional_input_notes.txt'
-DE_ADDITIONAL_INPUT_FILE = None
 # See docstring in examples/de_additional.py for explanation of flags. In our
 # (non-shared) code, we use '°' to refer to tokens that we might want a
 # flashcard for and '†' for tokens that we don't (e.g., if we know a phrase

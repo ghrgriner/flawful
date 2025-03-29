@@ -269,12 +269,9 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
     """
 
     if ('de_prompts' not in df and 'de3' not in df):
-        # Remove next block when sharing
         df['de3p'] = flawful.columns_with_prefix_to_list(df, 'de3p_')
         df['de3d'] = flawful.columns_with_prefix_to_list(df, 'de3d_')
         df['de3e'] = flawful.columns_with_prefix_to_list(df, 'de3e_')
-        df['de3d'] = df.de3d.map(remove_underscore_from_list)
-        df['de3e'] = df.de3e.map(remove_underscore_from_list)
         ret_val = [ flawful.combine_answer_lists(prompts=de3p, answers_1=de3d,
                     answers_2=de3e, answer1_hint='D', answer2_hint='E')
                 for (de3p, de3d, de3e) in df[['de3p','de3d','de3e']].values
