@@ -78,7 +78,7 @@ import numpy as np
 import flawful
 import flawful.german
 
-from de1_flagged import create_de1_flagged_output, check_flag_usage
+from de_additional import create_de_additional_output, check_flag_usage
 
 #------------------------------------------------------------------------------
 # Input / Output directories should be set by the user before running.
@@ -119,8 +119,8 @@ PRINT_UNUSED_AUDIO = True
 # two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
 OUTPUT_FILE_PREFIX = 'output_notes'
 # also two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
-DE1_FLAGGED_FILE_PREFIX = 'de1_flagged'
-# See docstring in examples/de1_flagged.txt for explanation of flags. In our
+DE_ADDITIONAL_FILE_PREFIX = 'de_additional'
+# See docstring in examples/de_additional.py for explanation of flags. In our
 # (non-shared) code, we use '°' to refer to tokens that we might want a
 # flashcard for and '†' for tokens that we don't (e.g., if we know a phrase
 # on DE3 is already entered on another card). In the example input files for
@@ -757,8 +757,8 @@ df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
 for de3, de3_prompt in df[['de3','de3_prompt']].values:
     check_flag_usage(de3, de3_prompt, flags=DE3_FLAGS_TO_CHECK, sep=';')
 
-de1_output = create_de1_flagged_output(df,
-                 outfile=os.path.join(OUTPUT_DIR, DE1_FLAGGED_FILE_PREFIX),
+de1_output = create_de_additional_output(df,
+                 outfile=os.path.join(OUTPUT_DIR, DE_ADDITIONAL_FILE_PREFIX),
                  aud_dicts=aud_dicts, wordlists=de_dicts,
                  str_to_wordlist_key=make_wordlist_key_notes,
                  str_to_audio_key=make_audio_key_notes,

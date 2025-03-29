@@ -1,7 +1,13 @@
-#    Functions to create notes for tokens flagged in `de1` (primary answer).
+#    Functions to create additional cards with German prompts for study.
 #    Copyright (C) 2025 Ray Griner (rgriner_fwd@outlook.com)
 
-""" Functions to create notes for tokens flagged in `de1` (primary answer).
+""" Functions to create additional cards with German prompts for study.
+
+They are additional in the sense that some cards with German prompts are
+already created by reversing cards with English prompts for notes in the
+primary input file. The additional cards are from one of two sources:
+(1) flagged words from `de1` in the primary input file (described below),
+and (2) from notes entered in a second input text file.
 
 The general idea is that we study some cards where English is on the front,
 and the target language (German in this case) is on the back. In our notes,
@@ -26,12 +32,11 @@ The back side of the card is obtained by parsing the field containing notes
 to look for tokens that are formatted in a certain way (see `to_def_dict`
 for details) or by defaulting to `en1`. This last part is perhaps
 unnecessarily complex, and users may want to consider simply keeping the
-raw data for these notes in a separate input file and processing that file
-similarly to the main file processed in `example1.py`.
+raw data for these notes in the secondary input file.
 """
 
 #------------------------------------------------------------------------------
-# File:   de1_flagged.py
+# File:   de_additional.py
 # Date:   2025-03-16
 # Author: Ray Griner
 #------------------------------------------------------------------------------
@@ -243,14 +248,14 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
             else:
                 de1_flagged_dict_[headword] = dict_val
 
-def create_de1_flagged_output(df, outfile, aud_dicts, wordlists,
+def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                  str_to_wordlist_key,
                  str_to_audio_key,
                  select_keys_no_audio,
                  flags,
                  sep = ',',
                               ):
-    """Create output file for `DE1 flagged` notes.
+    """Create output file for `DE additional` notes.
 
     The `de1` field is parsed and (1) tokens marked with '°' are
     identified.  (2) tokens NOT marked with '°' or '†' are then identified.
@@ -366,8 +371,8 @@ def create_de1_flagged_output(df, outfile, aud_dicts, wordlists,
     #tags_col = de1_df.columns.get_loc('Tags')
     #column_str = '\t'.join(de1_df.columns)
     #metadata = ['#separator:Tab',
-    #           f'#deck:DE1 Flagged',
-    #            "#notetype:DE1 Flagged",
+    #           f'#deck:DE Additional',
+    #            "#notetype:DE Additional",
     #            '#html:true',
     #           f'#tags column:{tags_col + 1}',
     #           f"#if matches:update current",
