@@ -119,7 +119,10 @@ PRINT_UNUSED_AUDIO = True
 # two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
 OUTPUT_FILE_PREFIX = 'output_notes'
 # also two output files generated, f'{prefix}.txt' and f'{prefix}_fields.txt'
-DE_ADDITIONAL_FILE_PREFIX = 'de_additional'
+DE_ADD_OUTPUT_FILE_PREFIX = 'de_additional'
+# Set the below to `None` if the file is not being used.
+DE_ADDITIONAL_INPUT_FILE = 'additional_input_notes.txt'
+DE_ADDITIONAL_INPUT_FILE = None
 # See docstring in examples/de_additional.py for explanation of flags. In our
 # (non-shared) code, we use '°' to refer to tokens that we might want a
 # flashcard for and '†' for tokens that we don't (e.g., if we know a phrase
@@ -757,12 +760,23 @@ df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
 for de3, de3_prompt in df[['de3','de3_prompt']].values:
     check_flag_usage(de3, de3_prompt, flags=DE3_FLAGS_TO_CHECK, sep=';')
 
+if DE_ADDITIONAL_INPUT_FILE is not None:
+    de_override_df = pd.read_csv(os.path.join(INPUT_DIR,
+                                              DE_ADDITIONAL_INPUT_FILE),
+                                 sep='\t', skiprows=(0), na_filter=False,
+                                 quoting=csv.QUOTE_NONE)
+else:
+    de_override_df = None
+
 de1_output = create_de_additional_output(df,
-                 outfile=os.path.join(OUTPUT_DIR, DE_ADDITIONAL_FILE_PREFIX),
+                 outfile=os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX),
                  aud_dicts=aud_dicts, wordlists=de_dicts,
                  str_to_wordlist_key=make_wordlist_key_notes,
                  str_to_audio_key=make_audio_key_notes,
                  select_keys_no_audio=filter_text_not_audio_pre,
+                 de_override_df=de_override_df,
+                 str_to_chapter=str_to_chapter,
+                 braces_html_class='highlight',
                  sep=',', flags=FLAGS)
 
 #------------------------------------------------------------------------------

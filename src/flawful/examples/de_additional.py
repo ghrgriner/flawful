@@ -248,12 +248,122 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
             else:
                 de1_flagged_dict_[headword] = dict_val
 
+def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
+                 str_to_wordlist_key, str_to_audio_key,
+                 braces_html_class,
+                 select_keys_no_audio):
+    """Process `de_override_pf` passed to `create_de_additional_output`.
+
+    Parameters
+    ----------
+    The `df` parameter to this function is the `de_override_df` parameter
+    to `create_de_additional_output`. All parameters are passed through
+    from `create_de_additional_output`. See that function for details.
+
+    Returns
+    -------
+    A data frame (pd.DataFrame) with the same number of observations as the
+    input `df`. The columns are:
+       'note_id','de_table_answer','de_table_prompt','pronun','notes',
+       'audio','chapter','Tags'.
+    """
+
+    if ('de_prompts' not in df and 'de3' not in df):
+        # Remove next block when sharing
+        df['de3p'] = flawful.columns_with_prefix_to_list(df, 'de3p_')
+        df['de3d'] = flawful.columns_with_prefix_to_list(df, 'de3d_')
+        df['de3e'] = flawful.columns_with_prefix_to_list(df, 'de3e_')
+        df['de3d'] = df.de3d.map(remove_underscore_from_list)
+        df['de3e'] = df.de3e.map(remove_underscore_from_list)
+        ret_val = [ flawful.combine_answer_lists(prompts=de3p, answers_1=de3d,
+                    answers_2=de3e, answer1_hint='D', answer2_hint='E')
+                for (de3p, de3d, de3e) in df[['de3p','de3d','de3e']].values
+                  ]
+        df['de3_prompts'] = [ '; '.join(x['prompts']) for x in ret_val ]
+        df['de3'] = [ '; '.join(x['answers']) for x in ret_val ]
+    elif ('de_prompts' in df or 'de3' in df):
+        raise ValueError('Both or none of `de_prompts` and `de3`'
+                         'columns should be present in `df`.')
+
+    if braces_html_class is not None:
+        df['de3_prompts'] = df.de3_prompts.map(
+            lambda x: flawful.braces_to_class(x, html_class=braces_html_class))
+        df['de3'] = df.de3.map(
+            lambda x: flawful.braces_to_class(x, html_class=braces_html_class))
+
+    ret_mtp = [
+         flawful.make_hint_target_and_answer(
+                     answer1=de_answer, answer2=en_answer,
+                     answer1_hint='D',  answer2_hint='E',  sep=';')
+         for (de_answer, en_answer) in df[['de_answer','en_answer']].values
+              ]
+    df['target'] = [ x['hint'] + ': ' + x['target'] for x in ret_mtp ]
+    df['answer'] = [ x['answer'] for x in ret_mtp ]
+    df['note_id'] = 'DE1_' + df.de1.map(str_to_wordlist_key)
+    df['pronun'] = df.pronun.map(flawful.german.show_vowel_length)
+    res_mc = df.chaplist.apply(flawful.init_chapter,
+                               str_to_chapter=str_to_chapter)
+    df['min_chap'] = [ x['chapter'] for x in res_mc ]
+    df['chap_tags'] = [ x['tags'] for x in res_mc ]
+
+    res_de1 = [
+          flawful.tag_audio_and_markup(audio_dicts=aud_dicts,
+                 wordlists=wordlists,
+                 str_to_wordlist_key=str_to_wordlist_key,
+                 str_to_audio_key=str_to_audio_key,
+                 select_keys_no_audio=select_keys_no_audio,
+                 htag_prefix='DE',
+                 chapter=row[1],
+                 fields=[row[0]],
+                 names=['de1'],
+                 seps=[';'],
+                 assign_chapter=[True])
+          for row in df[['de1','min_chap']].values
+              ]
+    df['de1_color'] = [x.markup_output['de1'] for x in res_de1]
+    df['audio'] = [x.audio_output for x in res_de1]
+    df['chapter'] = [x.chapter for x in res_de1]
+    df['Tags'] = [x.tags for x in res_de1]
+    df['Tags'] = df['chap_tags'] + ' ' + df['Tags']
+    df['prompt'] = (df.de1_color + ' (' + df.part_of_speech + ') '
+                       + df.target)
+    df['prompt'] = np.where(df.de1_hint == '', df.prompt,
+                            df.prompt + ' [' + df.de1_hint + ']')
+
+    make_rv = [
+        flawful.make_prompt_and_answer_table(
+            prompts=[r[0],''], answers=[r[1],''],
+            tokenized_prompts=r[2], tokenized_answers=r[3],
+            drop_empty_rows=True)
+       for r in df[['prompt','answer','de3_prompts', 'de3']].values
+              ]
+    df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
+
+    # rerun to make answer, only difference is `prompts` parameter
+    make_rv = [
+        flawful.make_prompt_and_answer_table(
+            prompts=[r[0],r[4]], answers=[r[1],''],
+            tokenized_prompts=r[2], tokenized_answers=r[3],
+            drop_empty_rows=True)
+       for r in df[['prompt','answer','de3_prompts',
+                    'de3','de2']].values
+              ]
+    df['de_table_answer'] = [ x['answer'] for x in make_rv ]
+
+    df = df[['note_id','de_table_answer', 'de_table_prompt','pronun','notes',
+       'audio','chapter','Tags']]
+
+    return df
+
 def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                  str_to_wordlist_key,
                  str_to_audio_key,
                  select_keys_no_audio,
                  flags,
                  sep = ',',
+                 de_override_df = None,
+                 str_to_chapter = None,
+                 braces_html_class = None,
                               ):
     """Create output file for `DE additional` notes.
 
@@ -305,6 +415,53 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
         a single flag.
     sep : str
         Delimiter for `de1`.
+    de_override_df : pd.DataFrame, optional
+        Additional input data frame for generating notes / cards where the
+        German word is on the front. This will override any cards with the
+        same headword generated from `df`. This is done because the cards
+        generated from `df` have some limitations. The front side of the
+        card is basically just what is extracted from `de1`, and there was
+        no easy way to add hints or a table of other prompts for
+        expressions containing the headword.
+
+        The required columns are:
+        - id : A unique number or string for each input row
+        - de1 : Similar meaning as main file, except this should be a
+                single word or phrase and not a token-delimited list
+        - de2 : Similar meaning as on main file
+        - de_answer : The meaning(s) of `de1` in German, if available. This
+                can be a semi colon delimited list. The number of items in
+                the list is only relevant when creating the prompt, so the
+                user knows how many meanings they are expected to produce.
+        - en_answer : The meaning(s) of `en1` in English. At least one of
+                `de_answer` or `en_answer` must be populated.
+        - notes : Same meaning as `de_notes` in the main file, except
+                unlike the main file, this field will never be parsed for
+                synonyms.
+        - pronun : Same meaning as `de_pronun` in the main file
+        - de1_hint : Same meaning as in the main file.
+        - part_of_speech : Same meaning as in the main file.
+        - chaplist : Same meaning as in the main file.
+
+        In addition, fields can exist that are analagous to `de3` and
+        `de3_prompts` in the main file. These should either be of the form:
+           - de3 : Same meaning as in the main file.
+           - de3_prompts : Same meaning as in the main file.
+        Alternatively, users can use fields that will be used to generate
+        `de3` and `de3_prompts`. In this case, the input fields should
+        each contain a single token.
+           - de3p_N : The Nth token for `de3_prompts`
+           - de3d_N : The Nth token for `de3` (in German)
+           - de3e_N : The Nth token for `de3` (in English)
+    str_to_chapter : Callable[[str], int], optional
+        Function to convert strings in `de_override_df.chaplist` to integer
+        representing the minimum chapter. Passed to `init_chapter()`. See
+        that function for details. Must be populated if `de_override_df` is
+        not None.
+    braces_html_class : str, optional
+        If populated, when processing `de_override_df` (if applicable),
+        '{text}' in the `de3` or `de3_prompts` columns is converted to:
+        '<div class={braces_html_class}>text</div>'.
 
     Returns
     -------
@@ -350,11 +507,38 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     de1_df['de1_color'] = [x.markup_output['de1'] for x in res_de1]
     de1_df['chapter'] = [x.chapter for x in res_de1]
     de1_df['Tags'] = [x.tags for x in res_de1]
+    vars_in_output = ['note_id', 'en1', 'part_of_speech', 'de_defs',
+                     'def_type', 'de1', 'de2', 'de_pronun', 'de_audio',
+                     'de1_color', 'chapter']
+
+    if de_override_df is not None:
+        df2 = process_de_override_df(df=de_override_df,
+                     str_to_chapter=str_to_chapter,
+                     aud_dicts=aud_dicts, wordlists=wordlists,
+                     str_to_wordlist_key=str_to_wordlist_key,
+                     str_to_audio_key=str_to_audio_key,
+                     braces_html_class=braces_html_class,
+                     select_keys_no_audio=select_keys_no_audio)
+        df2.rename({'audio': 'o_audio', 'chapter': 'o_chapter',
+                    'Tags': 'o_Tags'}, inplace=True, axis='columns')
+
+        de1_df = de1_df.merge(df2[['note_id','de_table_answer',
+           'de_table_prompt','pronun','notes','o_audio','o_chapter','o_Tags']],
+            how='left', on='note_id', indicator=True)
+
+        in_df2 = de1_df._merge != 'left_only'
+        de1_df['has_table'] = np.where(in_df2, 'has_table', '')
+        de1_df['no_table']  = np.where(in_df2, '', 'Y')
+        de1_df['de_audio'] = np.where(in_df2, de1_df.o_audio,  de1_df.de_audio)
+        de1_df['chapter']  = np.where(in_df2, de1_df.o_chapter, de1_df.chapter)
+        de1_df['Tags']     = np.where(in_df2, de1_df.o_Tags,   de1_df.Tags)
+        vars_in_output.extend(['de_table_answer','de_table_prompt','has_table',
+                               'no_table','pronun','notes'])
+
     #de1_df['dummy'] = True
     #print(flawful.twowaytbl(de1_df, 'chapter', 'dummy', cumulative=True))
-    de1_df = de1_df[['note_id', 'en1', 'part_of_speech', 'de_defs',
-                     'def_type', 'de1', 'de2', 'de_pronun', 'de_audio',
-                     'de1_color', 'chapter', 'Tags']]
+    de1_df = de1_df[vars_in_output + ['Tags']]
+
 
     de1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
                   index=False)
