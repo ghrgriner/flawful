@@ -234,7 +234,7 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                 # note so the headword isn't empty.
                 raise ValueError('headword empty for val = ' + val)
 
-            dict_val = {'note_id': 'DE1_' + headword,
+            dict_val = {'merge_id': 'HW_' + headword,
                         'en1': en1,
                         'part_of_speech': part_of_speech,
                         'de_defs': definition,
@@ -264,7 +264,7 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
     -------
     A data frame (pd.DataFrame) with the same number of observations as the
     input `df`. The columns are:
-       'note_id','de_table_answer','de_table_prompt','pronun','notes',
+       'id','merge_id','de_table_answer','de_table_prompt','pronun','notes',
        'audio','chapter','Tags'.
     """
 
@@ -296,7 +296,8 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
               ]
     df['target'] = [ x['hint'] + ': ' + x['target'] for x in ret_mtp ]
     df['answer'] = [ x['answer'] for x in ret_mtp ]
-    df['note_id'] = 'DE1_' + df.de1.map(str_to_wordlist_key)
+    df['de_for_headword'] = np.where(df.de_xref != '', df.de_xref, df.de1)
+    df['merge_id'] = 'HW_' + df.de_for_headword.map(str_to_wordlist_key)
     df['pronun'] = df.pronun.map(flawful.german.show_vowel_length)
     res_mc = df.chaplist.apply(flawful.init_chapter,
                                str_to_chapter=str_to_chapter)
@@ -347,8 +348,8 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
               ]
     df['de_table_answer'] = [ x['answer'] for x in make_rv ]
 
-    df = df[['note_id','de_table_answer', 'de_table_prompt','pronun','notes',
-       'audio','chapter','Tags']]
+    df = df[['id','merge_id','de_table_answer', 'de_table_prompt','pronun',
+       'notes','audio','chapter','Tags']]
 
     return df
 
@@ -421,10 +422,12 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
         no easy way to add hints or a table of other prompts for
         expressions containing the headword.
 
-        The required columns are:
+        The required columns (in any order) are:
         - id : A unique number or string for each input row
         - de1 : Similar meaning as main file, except this should be a
                 single word or phrase and not a token-delimited list
+        - de_xref : If populated, will generate the headword for merging to
+                the flagged records. Otherwise, `de1` will be used.
         - de2 : Similar meaning as on main file
         - de_answer : The meaning(s) of `de1` in German, if available. This
                 can be a semi colon delimited list. The number of items in
@@ -516,12 +519,12 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                      str_to_audio_key=str_to_audio_key,
                      braces_html_class=braces_html_class,
                      select_keys_no_audio=select_keys_no_audio)
-        df2.rename({'audio': 'o_audio', 'chapter': 'o_chapter',
-                    'Tags': 'o_Tags'}, inplace=True, axis='columns')
+        df2 = df2.rename({'audio': 'o_audio', 'chapter': 'o_chapter',
+                    'Tags': 'o_Tags'}, axis='columns')
 
-        de1_df = de1_df.merge(df2[['note_id','de_table_answer',
+        de1_df = de1_df.merge(df2[['id','merge_id','de_table_answer',
            'de_table_prompt','pronun','notes','o_audio','o_chapter','o_Tags']],
-            how='left', on='note_id', indicator=True)
+            how='outer', on='merge_id', indicator=True)
 
         in_df2 = de1_df._merge != 'left_only'
         de1_df['has_table'] = np.where(in_df2, 'has_table', '')
@@ -529,6 +532,8 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
         de1_df['de_audio'] = np.where(in_df2, de1_df.o_audio,  de1_df.de_audio)
         de1_df['chapter']  = np.where(in_df2, de1_df.o_chapter, de1_df.chapter)
         de1_df['Tags']     = np.where(in_df2, de1_df.o_Tags,   de1_df.Tags)
+        de1_df['note_id']  = np.where(in_df2,
+                                      'AD_' + de1_df.id, de1_df.merge_id)
         vars_in_output.extend(['de_table_answer','de_table_prompt','has_table',
                                'no_table','pronun','notes'])
 

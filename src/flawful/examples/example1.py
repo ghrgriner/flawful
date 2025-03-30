@@ -764,7 +764,7 @@ if DE_ADDITIONAL_INPUT_FILE is not None:
     de_override_df = pd.read_csv(os.path.join(INPUT_DIR,
                                               DE_ADDITIONAL_INPUT_FILE),
                                  sep='\t', skiprows=(0), na_filter=False,
-                                 quoting=csv.QUOTE_NONE)
+                                 dtype={'id': str}, quoting=csv.QUOTE_NONE)
 else:
     de_override_df = None
 
