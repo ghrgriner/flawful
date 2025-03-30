@@ -109,6 +109,7 @@ PRINT_NOTES_WITHOUT_AUDIO = False
 ONE_CHAPTER = None
 # List of reference lists to compare, use 'All' for all
 WORDLISTS_TO_COMPARE = 'All'
+
 # Copy the used audio files to another directory. The output filename will be
 #  set to f'{basename_out}.{ext}', where `ext` is the extension parameter that
 #  was passed to `add_from_dir` when loading the audio files and
@@ -123,6 +124,25 @@ DE_ADD_OUTPUT_FILE_PREFIX = 'de_additional'
 # Set the below to `None` if the file is not being used.
 #DE_ADDITIONAL_INPUT_FILE = None
 DE_ADDITIONAL_INPUT_FILE = 'additional_input_notes.txt'
+
+# If not `None`, `pd.DataFrame.rename` will be called on the dataset that makes
+# the additional output file just before the output is written, and this will
+# be passed as the mapper. This is because the default names generated have
+# `en` prefixes (meaning English) and `de` prefixes (meaning German). Users
+# can then store words in other languages in these fields and rename the fields
+# to something appropriate. Users setting this value may also want to pass a
+# different value than the defaults of `en_hint`, `de_hint`, and `htag_prefix`
+# to `create_de_additional_output` since the defaults are 'E', 'D', and 'DE',
+# meaning English, German, and German, respectively.
+#DE_ADD_OUTPUT_MAPPER = {'en1': 'po1'}
+DE_ADD_OUTPUT_MAPPER = None
+
+# If not none, then if `create_de_additional_output` is called, this value is
+# passed in the `braces_html_class` parameter, so that text surrounded by
+# braces in `de` or `de3_prompts` (or de3d_N, de3e_N, de3p_N) is put in an
+# HTML div element with the indicated class.
+BRACES_HTML_CLASS = 'highlight'
+
 # See docstring in examples/de_additional.py for explanation of flags. In our
 # (non-shared) code, we use '°' to refer to tokens that we might want a
 # flashcard for and '†' for tokens that we don't (e.g., if we know a phrase
@@ -539,8 +559,8 @@ def make_tables_and_listings(df_: pd.DataFrame, wordlist_id,
     flawful.twowaytbl(df_, title='\nNotes with German audio by chapter:',
               row='chapter', col='has_german_audio')
     if wordlist_id and wordlist_id != 'All':
-        flawful.twowaytbl(df_, title=('\nNotes by German chapter and status in '
-                  f'{wordlist_id} word list:'),
+        flawful.twowaytbl(df_, title=('\nNotes by German chapter and status in'
+                  f' {wordlist_id} word list:'),
                   row='chapter', col=f'In{wordlist_id}', cumulative=True)
 
     #--------------------------------------------------------------------------
@@ -755,7 +775,7 @@ df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
 #print(flawful.twowaytbl(df, 'n_de3','n_de3_prompt'))
 
 #------------------------------------------------------------------------------
-# Optional code to make 'DE1 Flagged' output file
+# Optional code to make additional output file
 #------------------------------------------------------------------------------
 for de3, de3_prompt in df[['de3','de3_prompt']].values:
     check_flag_usage(de3, de3_prompt, flags=DE3_FLAGS_TO_CHECK, sep=';')
@@ -768,7 +788,7 @@ if DE_ADDITIONAL_INPUT_FILE is not None:
 else:
     de_override_df = None
 
-de1_output = create_de_additional_output(df,
+create_de_additional_output(df,
                  outfile=os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX),
                  aud_dicts=aud_dicts, wordlists=de_dicts,
                  str_to_wordlist_key=make_wordlist_key_notes,
@@ -776,7 +796,8 @@ de1_output = create_de_additional_output(df,
                  select_keys_no_audio=filter_text_not_audio_pre,
                  de_override_df=de_override_df,
                  str_to_chapter=str_to_chapter,
-                 braces_html_class='highlight',
+                 braces_html_class=BRACES_HTML_CLASS,
+                 output_mapper=DE_ADD_OUTPUT_MAPPER,
                  sep=',', flags=FLAGS)
 
 #------------------------------------------------------------------------------

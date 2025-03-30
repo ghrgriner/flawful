@@ -42,7 +42,6 @@ raw data for these notes in the secondary input file.
 #------------------------------------------------------------------------------
 
 import csv
-import re
 import pandas as pd
 import numpy as np
 import flawful
@@ -151,25 +150,25 @@ def to_def_dict(col, sep):
     def_list = col.split(sep)
     ret_dict = {}
     for val in def_list:
-       val = val.strip()
-       if (len(val) >= 3 and (val[1] == '=' or val[1] == '≈')
-          and val[0].isdigit() and val[2].isdigit()):
-          if int(val[0]) in ret_dict:
-              raise ValueError(f'{def_list} puts in dict twice')
-          if len(val) <= 4:
-              ret_dict[int(val[0])] = (int(val[2]), '')
-          else:
-              ret_dict[int(val[0])] = (int(val[2]), val[4:])
-       elif (len(val) >= 3) and val[0].isdigit() and val[1] == ':':
-          if int(val[0]) in ret_dict:
-              raise ValueError(f'{def_list} puts in dict twice')
-          ret_dict[int(val[0])] = (None, val[3:])
+        val = val.strip()
+        if (len(val) >= 3 and (val[1] == '=' or val[1] == '≈')
+            and val[0].isdigit() and val[2].isdigit()):
+            if int(val[0]) in ret_dict:
+                raise ValueError(f'{def_list} puts in dict twice')
+            if len(val) <= 4:
+                ret_dict[int(val[0])] = (int(val[2]), '')
+            else:
+                ret_dict[int(val[0])] = (int(val[2]), val[4:])
+        elif (len(val) >= 3) and val[0].isdigit() and val[1] == ':':
+            if int(val[0]) in ret_dict:
+                raise ValueError(f'{def_list} puts in dict twice')
+            ret_dict[int(val[0])] = (None, val[3:])
     return ret_dict
 
 def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                    sep, flags, en1, part_of_speech,
                    en1_hint, de1_hint,
-                   de1, de2, de_notes, de3, de3_prompt, de_pronun):
+                   de1, de2, de_notes, de_pronun):
     """Add items to dictionary with the fields for the DE1_Flagged cards.
 
     Returns
@@ -196,11 +195,13 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                 or part_of_speech == 'V'):
                 try:
                     de2 = de2.split(';')[idx]
-                except IndexError: de2 = ''
+                except IndexError:
+                    de2 = ''
             elif part_of_speech == 'N':
                 try:
                     de2 = de2.split(',')[idx]
-                except IndexError: de2 = ''
+                except IndexError:
+                    de2 = ''
             else:
                 de2 = ''
 
@@ -209,7 +210,7 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
             def_dict = to_def_dict(de_notes, sep=';')
             definition = ''
             def_type = ''
-            if (idx + 1) in def_dict:
+            if idx + 1 in def_dict:
                 if def_dict[idx+1][0]:
                     def_type = f'[{de1_hint}]'
                     # def_dict value = (M, 'some text' | '')
@@ -251,7 +252,7 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
 
 def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
                  str_to_wordlist_key, str_to_audio_key,
-                 braces_html_class,
+                 braces_html_class, en_hint, de_hint, htag_prefix,
                  select_keys_no_audio):
     """Process `de_override_pf` passed to `create_de_additional_output`.
 
@@ -274,7 +275,8 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
         df['de3d'] = flawful.columns_with_prefix_to_list(df, 'de3d_')
         df['de3e'] = flawful.columns_with_prefix_to_list(df, 'de3e_')
         ret_val = [ flawful.combine_answer_lists(prompts=de3p, answers_1=de3d,
-                    answers_2=de3e, answer1_hint='D', answer2_hint='E')
+                    answers_2=de3e, answer1_hint=de_hint,
+                    answer2_hint=en_hint)
                 for (de3p, de3d, de3e) in df[['de3p','de3d','de3e']].values
                   ]
         df['de3_prompts'] = [ '; '.join(x['prompts']) for x in ret_val ]
@@ -292,7 +294,7 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
     ret_mtp = [
          flawful.make_hint_target_and_answer(
                      answer1=de_answer, answer2=en_answer,
-                     answer1_hint='D',  answer2_hint='E',  sep=';')
+                     answer1_hint=de_hint,  answer2_hint=en_hint,  sep=';')
          for (de_answer, en_answer) in df[['de_answer','en_answer']].values
               ]
     df['target'] = [ x['hint'] + ': ' + x['target'] for x in ret_mtp ]
@@ -311,7 +313,7 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
                  str_to_wordlist_key=str_to_wordlist_key,
                  str_to_audio_key=str_to_audio_key,
                  select_keys_no_audio=select_keys_no_audio,
-                 htag_prefix='DE',
+                 htag_prefix=htag_prefix,
                  chapter=row[1],
                  fields=[row[0]],
                  names=['de1'],
@@ -363,6 +365,10 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                  de_override_df = None,
                  str_to_chapter = None,
                  braces_html_class = None,
+                 en_hint = 'E',
+                 de_hint = 'D',
+                 htag_prefix = 'DE',
+                 output_mapper = None,
                               ):
     """Create output file for `DE additional` notes.
 
@@ -463,6 +469,23 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
         If populated, when processing `de_override_df` (if applicable),
         '{text}' in the `de3` or `de3_prompts` columns is converted to:
         '<div class={braces_html_class}>text</div>'.
+    output_mapper : optional
+        If not `None`, `pd.DataFrame.rename` will be called on the dataset
+        that makes the additional output file just before the output is
+        written, and this will be passed as the mapper. This is because the
+        default names generated have `en` prefixes (meaning English) and
+        `de` prefixes (meaning German). Users can then store words in other
+        languages in these fields and name them something appropriate.
+    en_hint : str, optional (default='E')
+        The additional file could have answers in `de_answer`, `en_answer`
+        or both. The card types derived from flagged words in `de1` could
+        have an answer also from `de1`, `en1`, or `de_notes`. This hint is
+        added to the prompt created on the front of the card indicating
+        from which field the answer was taken.
+    de_hint : str, optional (default='D')
+        See `en_hint` above.
+    htag_prefix : str, optional (default='DE')
+        Eventually passed to `flag_audio_and_markup`.
 
     Returns
     -------
@@ -477,18 +500,18 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                                                         str_to_wordlist_key,
                                                         flags, sep))
 
-    for (en1,    part_of_speech,   de1,   de2,   de_notes,   de3,  de3_prompt,
+    for (en1,    part_of_speech,   de1,   de2,   de_notes,
          de_pronun) in df[
-        ['en1', 'part_of_speech', 'de1', 'de2', 'de_notes', 'de3','de3_prompt',
+        ['en1', 'part_of_speech', 'de1', 'de2', 'de_notes',
         'de_pronun']].values:
         make_new_cards(exclude_headwords=de1_not_flagged_set,
                        de1_flagged_dict_=de1_flagged_dict,
                        str_to_wordlist_key=str_to_wordlist_key,
                        sep=sep, flags=flags,
-                       en1_hint='E', de1_hint='D',
+                       en1_hint=en_hint, de1_hint=de_hint,
                        en1=en1, part_of_speech=part_of_speech,
-                       de1=de1, de2=de2, de_notes=de_notes, de3=de3,
-                       de3_prompt=de3_prompt, de_pronun=de_pronun)
+                       de1=de1, de2=de2, de_notes=de_notes,
+                       de_pronun=de_pronun)
     de1_df = pd.DataFrame.from_dict(de1_flagged_dict, orient='index')
 
     res_de1 = [
@@ -497,7 +520,7 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                  str_to_wordlist_key=str_to_wordlist_key,
                  str_to_audio_key=str_to_audio_key,
                  select_keys_no_audio=select_keys_no_audio,
-                 htag_prefix='DE',
+                 htag_prefix=htag_prefix,
                  chapter=999,
                  fields=[row[0]],
                  names=['de1'],
@@ -520,15 +543,18 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                      str_to_wordlist_key=str_to_wordlist_key,
                      str_to_audio_key=str_to_audio_key,
                      braces_html_class=braces_html_class,
-                     select_keys_no_audio=select_keys_no_audio)
+                     select_keys_no_audio=select_keys_no_audio,
+                     en_hint=en_hint, de_hint=de_hint,
+                     htag_prefix=htag_prefix,
+                     )
         df2 = df2.rename({'audio': 'o_audio', 'chapter': 'o_chapter',
                     'Tags': 'o_Tags'}, axis='columns')
 
         de1_df = de1_df.merge(df2[['id','merge_id','de_table_answer',
            'de_table_prompt','pronun','notes','o_audio','o_chapter','o_Tags']],
-            how='outer', on='merge_id', indicator=True)
+            how='outer', on='merge_id', indicator='merge_ind')
 
-        in_df2 = de1_df._merge != 'left_only'
+        in_df2 = de1_df.merge_ind != 'left_only'
         de1_df['has_table'] = np.where(in_df2, 'has_table', '')
         de1_df['no_table']  = np.where(in_df2, '', 'Y')
         de1_df['de_audio'] = np.where(in_df2, de1_df.o_audio,  de1_df.de_audio)
@@ -542,7 +568,8 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     #de1_df['dummy'] = True
     #print(flawful.twowaytbl(de1_df, 'chapter', 'dummy', cumulative=True))
     de1_df = de1_df[vars_in_output + ['Tags']]
-
+    if output_mapper is not None:
+        de1_df.rename(columns=output_mapper, inplace=True)
 
     de1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
                   index=False)
@@ -571,4 +598,3 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     #             quoting=csv.QUOTE_NONE)
     #de1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
     #              index=False, mode='a')
-
