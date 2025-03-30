@@ -168,6 +168,7 @@ def to_def_dict(col, sep):
 
 def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                    sep, flags, en1, part_of_speech,
+                   en1_hint, de1_hint,
                    de1, de2, de_notes, de3, de3_prompt, de_pronun):
     """Add items to dictionary with the fields for the DE1_Flagged cards.
 
@@ -210,19 +211,19 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
             def_type = ''
             if (idx + 1) in def_dict:
                 if def_dict[idx+1][0]:
-                    def_type = '[DE]'
+                    def_type = f'[{de1_hint}]'
                     # def_dict value = (M, 'some text' | '')
                     definition = (de1_list[def_dict[idx+1][0]-1] + ' '
                                   + def_dict[idx+1][1])
                 else:
                     # def_dict value = (None, 'some text')
-                    def_type = '[EN (or DE)]'
+                    def_type = f'[{en1_hint}|{de1_hint}]'
                     definition = def_dict[idx+1][1]
             else:
                 # Not in dictionary. The primary answer will be `en1`, but
                 # this will also be on the back of the card, so we don't
                 # put it in `definition`.
-                def_type = '[EN]'
+                def_type = f'[{en1_hint}]'
                 if f'{idx+1}:' in de_notes or f'{idx+1}=' in de_notes:
                     # might happen when we accidentally used comma instead
                     # of semi-colon to tokenize de3
@@ -433,7 +434,7 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                 can be a semi colon delimited list. The number of items in
                 the list is only relevant when creating the prompt, so the
                 user knows how many meanings they are expected to produce.
-        - en_answer : The meaning(s) of `en1` in English. At least one of
+        - en_answer : The meaning(s) of `de1` in English. At least one of
                 `de_answer` or `en_answer` must be populated.
         - notes : Same meaning as `de_notes` in the main file, except
                 unlike the main file, this field will never be parsed for
@@ -484,6 +485,7 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                        de1_flagged_dict_=de1_flagged_dict,
                        str_to_wordlist_key=str_to_wordlist_key,
                        sep=sep, flags=flags,
+                       en1_hint='E', de1_hint='D',
                        en1=en1, part_of_speech=part_of_speech,
                        de1=de1, de2=de2, de_notes=de_notes, de3=de3,
                        de3_prompt=de3_prompt, de_pronun=de_pronun)
