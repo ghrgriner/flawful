@@ -45,7 +45,6 @@ import csv
 import pandas as pd
 import numpy as np
 import flawful
-import flawful.german
 
 #---------------------------------------------
 # Functions
@@ -301,7 +300,6 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
     df['answer'] = [ x['answer'] for x in ret_mtp ]
     df['de_for_headword'] = np.where(df.de_xref != '', df.de_xref, df.de1)
     df['merge_id'] = 'HW_' + df.de_for_headword.map(str_to_wordlist_key)
-    df['pronun'] = df.pronun.map(flawful.german.show_vowel_length)
     res_mc = df.chaplist.apply(flawful.init_chapter,
                                str_to_chapter=str_to_chapter)
     df['min_chap'] = [ x['chapter'] for x in res_mc ]

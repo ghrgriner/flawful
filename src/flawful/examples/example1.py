@@ -785,6 +785,8 @@ if DE_ADDITIONAL_INPUT_FILE is not None:
                                               DE_ADDITIONAL_INPUT_FILE),
                                  sep='\t', skiprows=(0), na_filter=False,
                                  dtype={'id': str}, quoting=csv.QUOTE_NONE)
+    de_override_df['pronun'] = de_override_df.pronun.map(
+            flawful.german.show_vowel_length)
 else:
     de_override_df = None
 
