@@ -72,6 +72,7 @@
 import re
 import os
 import csv
+from collections import namedtuple
 
 import pandas as pd
 import numpy as np
@@ -653,21 +654,29 @@ df['chapter_tags'] = [ x['tags'] for x in res_mc ]
 # This function does the most work.
 # Field information is passed in three or four equal-sized lists (`fields`,
 #  `names`, `seps`, `assign_character`), but this may change in the future.
+FieldInfo = namedtuple('FieldInfo', ['sep','assign_chapter'])
+field_info = {}
+field_info['de1'] = FieldInfo(sep=',', assign_chapter=True)
+field_info['at1'] = FieldInfo(sep=',', assign_chapter=True)
+field_info['sd1'] = FieldInfo(sep=',', assign_chapter=True)
+field_info['de3'] = FieldInfo(sep=';', assign_chapter=True)
+field_info['dib_sentences'] = FieldInfo(sep=';', assign_chapter=True)
+field_info['de_xref'] = FieldInfo(sep=';', assign_chapter=True)
+field_info['de_xref_ignore_ch'] = FieldInfo(sep=';', assign_chapter=False)
+names = [ x for x in field_info ]
+assign_chapters = [ val.assign_chapter for _, val in field_info.items() ]
+
 res_de = [
      flawful.tag_audio_and_markup(audio_dicts=aud_dicts, wordlists=de_dicts,
          str_to_wordlist_key=make_wordlist_key_notes,
          str_to_audio_key=make_audio_key_notes,
          select_keys_no_audio=filter_text_not_audio_pre,
-         htag_prefix='DE',
-         chapter=row[0],
-         fields=[row[1],row[2],row[3],row[4],row[5],row[6],row[7]],
-         names= ['de1', 'at1', 'sd1', 'de3','dib_sentences','de_xref',
-                 'de_xref_ignore_ch'],
-         seps=  [','  , ','  , ','  , ';'  ,';'            ,';'      ,';'],
-         assign_chapter=[True, True, True, True, True, True, False],
+         htag_prefix='DE', chapter=row[0],
+         tokens=[ row[1+idx].split(field_info[val].sep)
+                  for idx, val in enumerate(names)],
+         names=names, assign_chapter=assign_chapters,
          )
-     for row in df[['chapter','de1','at1','sd1','de3','dib_sentences',
-                    'de_xref','de_xref_ignore_ch']].values
+     for row in df[['chapter'] + names].values
          ]
 # Put each element in `res_de` in own data frame column.
 df['de_audio'] = [x.audio_output for x in res_de]
@@ -677,13 +686,8 @@ df['tags'] = [x.tags for x in res_de]
 df['tags'] = df['chapter_tags'] + ' ' + df['tags']
 for k in de_dicts.keys():
     df[f'In{k}'] = [x.in_wordlists[k] for x in res_de]
-df['de1_color'] = [x.markup_output['de1'] for x in res_de]
-df['de3_color'] = [x.markup_output['de3'] for x in res_de]
-df['at1_color'] = [x.markup_output['at1'] for x in res_de]
-df['sd1_color'] = [x.markup_output['sd1'] for x in res_de]
-df['de_xref_color'] = [x.markup_output['de_xref'] for x in res_de]
-df['de_xref_ignore_ch_color'] = [
-      x.markup_output['de_xref_ignore_ch'] for x in res_de]
+for k, val in field_info.items():
+    df[k + '_color'] = [val.sep.join(x.markup_output[k]) for x in res_de]
 df['de_sentences'] = [flawful.list_of_lists_to_str(x.sent_lists['LC'])
                  for x in res_de]
 # done with `res_de`

@@ -409,9 +409,8 @@ def tag_audio_and_markup(audio_dicts: Dict[str, Any],
         select_keys_no_audio: Callable[[int, Dict[str, bool], str], bool],
         htag_prefix: str,
         chapter: int,
-        fields: List[str],
+        tokens: List[List[str]],
         names: List[str],
-        seps: List[str],
         assign_chapter: Optional[List[bool]] = None,
         first_chapter_tag_prefix: str = 'FC',
         in_wordlists_tag_prefix: str = 'In',
@@ -488,18 +487,14 @@ def tag_audio_and_markup(audio_dicts: Dict[str, Any],
         object.
     chapter : int
         Minimum chapter found so far for the note.
-    field_values : list[str]
-        Data in the fields that the function will parse to create the
-        lookup keys.
-    field_names : list[str], same length as `field_values`
+    tokens : list[list[str]]
+        List of all the tokens in each field that the function will
+        parse to create the lookup keys.
+    names : list[str], same length as `field_values`
         Names of the fields in the `field_values` parameter. These
         names will be passed to the function output. The current
-        interface is passing 3 or 4 equal sized lists (`field_values`,
-        `field_names`, `seps`, `assign_chapter`) but this may change in
-        the future.
-    seps : list[str], same length as `field_values`
-        List of separators that gives the character used to separate the
-        tokens in each input field.
+        interface is passing 3 equal-sized lists (`tokens`, `names`,
+        `assign_chapter`) but this may change in the future.
     assign_chapter : list[bool], optional (default = None)
         List of indicators whether the field should be used to assign
         the chapter. The purpose is to allow fields that are only used
@@ -556,12 +551,13 @@ def tag_audio_and_markup(audio_dicts: Dict[str, Any],
         sentences as an unordered list.
     """
     if assign_chapter is None:
-        assign_chapter = [ True for _ in range(len(fields)) ]
+        assign_chapter = [ True for _ in range(len(tokens)) ]
     # tokens from all the fields in one list
-    tokens = []
-    for idx, val in enumerate(fields):
-        field_list = val.split(seps[idx])
-        tokens.extend([_TokenInfo(index=idx, value=val)
+    tokens_and_indices = []
+    for idx, val in enumerate(tokens):
+        #field_list = val.split(seps[idx])
+        field_list = val
+        tokens_and_indices.extend([_TokenInfo(index=idx, value=val)
                        for val in field_list])
     audio_output: Union[str, Dict[str, str]]
     if audio_output_format == 'str':
@@ -580,10 +576,10 @@ def tag_audio_and_markup(audio_dicts: Dict[str, Any],
         sent_lists[key] = []
     #out_list = [ [], [], [], [], [], [] ]
     # [ [] ] * len(fields) won't work, they all refer to the same list!
-    out_list: List[List[str]] = [ [] for _ in range(len(fields)) ]
+    out_list: List[List[str]] = [ [] for _ in range(len(tokens)) ]
 
     # Loop 1: Get lowest CEFR level of any word presented in the note
-    for token in tokens:
+    for token in tokens_and_indices:
         max_word_level = len(wordlists.keys())
         word_level = max_word_level
         wordlist_key = str_to_wordlist_key(token.value)
@@ -616,14 +612,15 @@ def tag_audio_and_markup(audio_dicts: Dict[str, Any],
 
     markup_output = {}
     for idx, val in enumerate(out_list):
-        markup_output[names[idx]] = seps[idx].join(val)
+        #markup_output[names[idx]] = seps[idx].join(val)
+        markup_output[names[idx]] = val
 
     # Loop 2: Get audio for each word, and print out words where the audio is
     # missing. This is its own loop so we can filter by properties of the
     # whole note. This is so that if we want to study notes assigned to A1,
     # it seems better to get audios for all words on the note (some might be
     # A2 or B1) instead of just getting audios for the A1 words.
-    for token in tokens:
+    for token in tokens_and_indices:
         wordlist_key = str_to_wordlist_key(token.value)
         audio_key = str_to_audio_key(token.value)
 

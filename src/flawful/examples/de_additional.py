@@ -313,13 +313,12 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
                  select_keys_no_audio=select_keys_no_audio,
                  htag_prefix=htag_prefix,
                  chapter=row[1],
-                 fields=[row[0]],
+                 tokens=[[row[0]]],
                  names=['de1'],
-                 seps=[';'],
                  assign_chapter=[True])
           for row in df[['de1','min_chap']].values
               ]
-    df['de1_color'] = [x.markup_output['de1'] for x in res_de1]
+    df['de1_color'] = [''.join(x.markup_output['de1']) for x in res_de1]
     df['audio'] = [x.audio_output for x in res_de1]
     df['chapter'] = [x.chapter for x in res_de1]
     df['Tags'] = [x.tags for x in res_de1]
@@ -520,14 +519,13 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                  select_keys_no_audio=select_keys_no_audio,
                  htag_prefix=htag_prefix,
                  chapter=999,
-                 fields=[row[0]],
+                 tokens=[[row[0]]],
                  names=['de1'],
-                 seps=[';'],
                  assign_chapter=[True])
           for row in de1_df[['de1']].values
               ]
     de1_df['de_audio'] = [x.audio_output for x in res_de1]
-    de1_df['de1_color'] = [x.markup_output['de1'] for x in res_de1]
+    de1_df['de1_color'] = [''.join(x.markup_output['de1']) for x in res_de1]
     de1_df['chapter'] = [x.chapter for x in res_de1]
     de1_df['Tags'] = [x.tags for x in res_de1]
     vars_in_output = ['note_id', 'en1', 'part_of_speech', 'de_defs',
