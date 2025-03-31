@@ -100,6 +100,7 @@ def _add_unflagged_headword_to_set(col_list, set_, str_to_wordlist_key, flags):
     """
     flag_set = set(flags)
     for val in col_list:
+        val = val.strip()
         headword = str_to_wordlist_key(val)
         if headword and flag_set.isdisjoint(val):
             set_.add(headword)
@@ -177,7 +178,7 @@ def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
 
             # get the token with the same index from `tl2`
             try:
-                tl2 = tl2_list[idx]
+                tl2 = tl2_list[idx].strip()
             except IndexError:
                 tl2 = ''
 
@@ -190,7 +191,7 @@ def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
                 if def_dict[idx+1][0]:
                     answer_lang = f'[{tl1_hint}]'
                     # def_dict value = (M, 'some text' | '')
-                    definition = (tl1_list[def_dict[idx+1][0]-1] + ' '
+                    definition = (tl1_list[def_dict[idx+1][0]-1].strip() + ' '
                                   + def_dict[idx+1][1])
                 else:
                     # def_dict value = (None, 'some text')
@@ -244,13 +245,6 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
        'audio','chapter','Tags'.
     """
 
-    # TODO: for now, match the fact that we originally built `tl3_prompts`
-    # by '; '.join(...), in other words, to replicate we need to add a space
-    # after the first value in the list.
-    def add_space(list_):
-        return [ (' ' if idx > 0 else '') + val
-                 for idx, val in enumerate(list_) ]
-
     if ('tl3_prompts_list' not in df and 'tl3_list' not in df):
         df['tl3p'] = flawful.columns_with_prefix_to_list(df, 'tl3p_')
         df['tl3d'] = flawful.columns_with_prefix_to_list(df, 'tl3d_')
@@ -262,11 +256,15 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
                   ]
         #df['tl3_prompts_list'] = [ x['prompts'] for x in ret_val ]
         #df['tl3_list'] = [ x['answers'] for x in ret_val ]
-        df['tl3_prompts_list'] = [ add_space(x['prompts']) for x in ret_val ]
-        df['tl3_list'] = [ add_space(x['answers']) for x in ret_val ]
+        df['tl3_prompts_list'] = [ x['prompts'] for x in ret_val ]
+        df['tl3_list'] = [ x['answers'] for x in ret_val ]
     elif ('tl3_prompts_list' in df or 'tl3_list' in df):
         raise ValueError('Both or none of `tl3_prompts_list` and `tl3_list`'
                          'columns should be present in `df`.')
+    else:
+        df['tl3_list'] = df.tl3_list.map(lambda x: [val.strip() for val in x])
+        df['tl3_prompts_list'] = df.tl3_prompts_list.map(
+                                         lambda x: [val.strip() for val in x])
 
     def braces_to_class_list(x):
         return [ flawful.braces_to_class(val, html_class=braces_html_class)

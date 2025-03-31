@@ -54,7 +54,7 @@ LICENSE.txt for licensing details.)
 # Author:  Ray Griner
 #------------------------------------------------------------------------------
 __author__ = 'Ray Griner'
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __all__ = ['german','utils']
 
 #from .german import write_tokens_wo_audio, make_de2_probs
