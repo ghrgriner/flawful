@@ -785,7 +785,8 @@ df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
 # Optional code to make additional output file
 #------------------------------------------------------------------------------
 for de3, de3_prompt in df[['de3','de3_prompt']].values:
-    check_flag_usage(de3, de3_prompt, flags=DE3_FLAGS_TO_CHECK, sep=';')
+    check_flag_usage(de3.split(';'), de3_prompt.split(';'),
+                     flags=DE3_FLAGS_TO_CHECK)
 
 if DE_ADDITIONAL_INPUT_FILE is not None:
     de_override_df = pd.read_csv(os.path.join(INPUT_DIR,

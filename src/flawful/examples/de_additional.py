@@ -49,7 +49,7 @@ import flawful
 #---------------------------------------------
 # Functions
 #---------------------------------------------
-def check_flag_usage(col1, col2, flags, sep):
+def check_flag_usage(col1, col2, flags):
     """Print warning messages if flags aren't in both columns or if ~ is used.
 
     The idea is that since the columns in the table can be reversed, we
@@ -65,20 +65,18 @@ def check_flag_usage(col1, col2, flags, sep):
     Parameters
     ----------
     col1 : str
-        First column of the table, rows delimited by `sep`.
+        List of tokens from the first column of the table.
     col2 : str
-        Second column of the table, rows delimited by `sep`.
+        List of tokens from the second column of the table.
     flags : str
         Flags. Each character in the string is a unique flag.
-    sep : str
-        Delimiter used for `col1` and `col2`.
 
     Returns
     -------
     Boolean indicator whether a warning was generated.
     """
-    col1_list = col1.split(sep)
-    col2_list = col2.split(sep)
+    col1_list = col1
+    col2_list = col2
     found = 0
     if len(col1_list) == len(col2_list):
         for idx, val in enumerate(col1_list):
