@@ -189,18 +189,21 @@ def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
             if idx + 1 in def_dict:
                 if def_dict[idx+1][0]:
                     def_type = f'[{tl1_hint}]'
+                    #def_type = f'[DE]'
                     # def_dict value = (M, 'some text' | '')
                     definition = (tl1_list[def_dict[idx+1][0]-1] + ' '
                                   + def_dict[idx+1][1])
                 else:
                     # def_dict value = (None, 'some text')
                     def_type = f'[{nl1_hint}|{tl1_hint}]'
+                    #def_type = f'[EN (or DE)]'
                     definition = def_dict[idx+1][1]
             else:
                 # Not in dictionary. The primary answer will be `nl1`, but
                 # this will also be on the back of the card, so we don't
                 # put it in `definition`.
                 def_type = f'[{nl1_hint}]'
+                #def_type = f'[EN]'
                 tl_notes = ';'.join(tl_notes_list)
                 if f'{idx+1}:' in tl_notes or f'{idx+1}=' in tl_notes:
                     # might happen when we accidentally used comma instead
@@ -210,7 +213,7 @@ def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
             if not headword:
                 raise ValueError('headword empty for val = ' + val)
 
-            dict_val = {'merge_id': 'HW_' + headword,
+            dict_val = {'merge_id': headword,
                         'nl1': nl1,
                         'part_of_speech': part_of_speech,
                         'tl_defs': definition,
@@ -287,7 +290,7 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
     df['target'] = [ x['hint'] + ': ' + x['target'] for x in ret_mtp ]
     df['answer'] = [ x['answer'] for x in ret_mtp ]
     df['tl_for_headword'] = np.where(df.tl_xref != '', df.tl_xref, df.tl1)
-    df['merge_id'] = 'HW_' + df.tl_for_headword.map(str_to_wordlist_key)
+    df['merge_id'] = df.tl_for_headword.map(str_to_wordlist_key)
     res_mc = df.chaplist.apply(flawful.init_chapter,
                                str_to_chapter=str_to_chapter)
     df['min_chap'] = [ x['chapter'] for x in res_mc ]
@@ -341,7 +344,7 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
 
     return df
 
-def create_tl_additional_output(df, outfile, aud_dicts, wordlists,
+def create_tl_additional_output(df, aud_dicts, wordlists,
                  str_to_wordlist_key,
                  str_to_audio_key,
                  select_keys_no_audio,
@@ -352,8 +355,9 @@ def create_tl_additional_output(df, outfile, aud_dicts, wordlists,
                  nl_hint = 'N',
                  tl_hint = 'T',
                  htag_prefix = 'TL',
+                 flag_id_prefix = 'HW_',
                  output_mapper = None,
-                              ):
+                              ) -> pd.DataFrame:
     """Create output file for `TL additional` notes.
 
     The `tl1` field is parsed and (1) tokens marked with '°' are
@@ -380,11 +384,6 @@ def create_tl_additional_output(df, outfile, aud_dicts, wordlists,
                 information extracted. Other tokens are ignored.
         - tl_pronun : Contains pronunciation information. This is passed
                 through to the output file.
-    outfile : str
-        File name and path for prefix output file. The program will append
-        '.txt' to make the name for the file with the notes data and will
-        append '_fields.txt' to make the name for the file with the field
-        names.
     aud_dicts : Dict
         See `aud_dicts` parameter in flawful.tag_audio_and_markup().
     wordlists : flawful.Wordlist
@@ -466,11 +465,14 @@ def create_tl_additional_output(df, outfile, aud_dicts, wordlists,
         See `nl_hint` above.
     htag_prefix : str, optional (default='TL')
         Eventually passed to `flag_audio_and_markup`.
+    flag_id_prefix : str, optional (default='HW_')
+        Prefix to add to the front of the headword when creating `note_id`
+        for records created from flagged `tl1` words.
 
     Returns
     -------
-    None, but `aud_dicts` and `wordlists` updated as side-effects. The
-    output file is also written to location `outfile`.
+    pd.DataFrame. Also, `aud_dicts` and `wordlists` are updated as
+    side-effects.
     """
 
     tl1_not_flagged_set = set()
@@ -538,21 +540,23 @@ def create_tl_additional_output(df, outfile, aud_dicts, wordlists,
         tl1_df['tl_audio'] = np.where(in_df2, tl1_df.o_audio,  tl1_df.tl_audio)
         tl1_df['chapter']  = np.where(in_df2, tl1_df.o_chapter, tl1_df.chapter)
         tl1_df['Tags']     = np.where(in_df2, tl1_df.o_Tags,   tl1_df.Tags)
-        tl1_df['note_id']  = np.where(in_df2,
-                                      'AD_' + tl1_df.id, tl1_df.merge_id)
+        tl1_df['note_id']  = np.where(in_df2, tl1_df.id,
+                                      flag_id_prefix + tl1_df.merge_id)
         vars_in_output.extend(['tl_table_answer','tl_table_prompt','has_table',
                                'no_table','pronun','notes'])
 
     #tl1_df['dummy'] = True
     #print(flawful.twowaytbl(tl1_df, 'chapter', 'dummy', cumulative=True))
     tl1_df = tl1_df[vars_in_output + ['Tags']]
-    if output_mapper is not None:
-        tl1_df.rename(columns=output_mapper, inplace=True)
+    return tl1_df
 
-    tl1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
-                  index=False)
-    tl1_df[0:0].to_csv(f'{outfile}_fields.txt', sep='\t',
-                       quoting=csv.QUOTE_NONE, index=False)
+    #if output_mapper is not None:
+    #    tl1_df.rename(columns=output_mapper, inplace=True)
+    #
+    #tl1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
+    #              index=False)
+    #tl1_df[0:0].to_csv(f'{outfile}_fields.txt', sep='\t',
+    #                   quoting=csv.QUOTE_NONE, index=False)
 
     #--------------------------------------------------------------------------
     # Alternate output that adds metadata to the file header

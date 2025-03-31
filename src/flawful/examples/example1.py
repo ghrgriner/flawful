@@ -825,6 +825,7 @@ if DE_ADDITIONAL_INPUT_FILE is not None:
                                               DE_ADDITIONAL_INPUT_FILE),
                                  sep='\t', skiprows=(0), na_filter=False,
                                  dtype={'id': str}, quoting=csv.QUOTE_NONE)
+    de_override_df['id'] = 'AD_' + de_override_df.id
     de_override_df['pronun'] = de_override_df.pronun.map(
             flawful.german.show_vowel_length)
     de_override_df['en_answer_list'] = de_override_df.en_answer.map(
@@ -841,8 +842,7 @@ if ADD_INPUT_MAPPER is not None:
 else:
     df_mod = df
 
-flawful.add.create_tl_additional_output(df_mod,
-                 outfile=os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX),
+add_df = flawful.add.create_tl_additional_output(df_mod,
                  aud_dicts=aud_dicts, wordlists=de_dicts,
                  str_to_wordlist_key=make_wordlist_key_notes,
                  str_to_audio_key=make_audio_key_notes,
@@ -851,8 +851,16 @@ flawful.add.create_tl_additional_output(df_mod,
                  str_to_chapter=str_to_chapter,
                  nl_hint='E', tl_hint='D', htag_prefix='DE',
                  braces_html_class=BRACES_HTML_CLASS,
-                 output_mapper=DE_ADD_OUTPUT_MAPPER,
                  flags=FLAGS)
+
+if DE_ADD_OUTPUT_MAPPER is not None:
+    add_df.rename(columns=DE_ADD_OUTPUT_MAPPER, inplace=True)
+
+add_outfile = os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX)
+add_df.to_csv(f'{add_outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
+              index=False)
+add_df[0:0].to_csv(f'{add_outfile}_fields.txt',
+                   sep='\t', quoting=csv.QUOTE_NONE, index=False)
 
 #------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes
