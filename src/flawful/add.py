@@ -247,12 +247,12 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
 
     if ('tl3_prompts_list' not in df and 'tl3_list' not in df):
         df['tl3p'] = flawful.columns_with_prefix_to_list(df, 'tl3p_')
-        df['tl3d'] = flawful.columns_with_prefix_to_list(df, 'tl3d_')
-        df['tl3e'] = flawful.columns_with_prefix_to_list(df, 'tl3e_')
-        ret_val = [ flawful.combine_answer_lists(prompts=tl3p, answers_1=tl3d,
-                    answers_2=tl3e, answer1_hint=tl_abbr,
+        df['tl3t'] = flawful.columns_with_prefix_to_list(df, 'tl3t_')
+        df['tl3n'] = flawful.columns_with_prefix_to_list(df, 'tl3n_')
+        ret_val = [ flawful.combine_answer_lists(prompts=tl3p, answers_1=tl3t,
+                    answers_2=tl3n, answer1_hint=tl_abbr,
                     answer2_hint=nl_abbr)
-                for (tl3p, tl3d, tl3e) in df[['tl3p','tl3d','tl3e']].values
+                for (tl3p, tl3t, tl3n) in df[['tl3p','tl3t','tl3n']].values
                   ]
         #df['tl3_prompts_list'] = [ x['prompts'] for x in ret_val ]
         #df['tl3_list'] = [ x['answers'] for x in ret_val ]
@@ -438,8 +438,8 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
         `tl3_list` and `tl3_prompts_list`. In this case, the input fields
         should each contain a single token.
            - tl3p_N : The Nth token for `tl3_prompts_list`
-           - tl3d_N : The Nth token for `tl3_list` (in target language)
-           - tl3e_N : The Nth token for `tl3_list` (in native language)
+           - tl3t_N : The Nth token for `tl3_list` (in target language)
+           - tl3n_N : The Nth token for `tl3_list` (in native language)
     str_to_chapter : Callable[[str], int], optional
         Function to convert strings in `tl_override_df.chaplist` to integer
         representing the minimum chapter. Passed to `init_chapter()`. See

@@ -153,10 +153,10 @@ DE_ADD_INPUT_MAPPER = {'en1': 'nl1',
      'de1': 'tl1',              'de2' : 'tl2',
      'de3p_1': 'tl3p_1', 'de3p_2': 'tl3p_2', 'de3p_3': 'tl3p_3',
      'de3p_4': 'tl3p_4', 'de3p_5': 'tl3p_5',
-     'de3d_1': 'tl3d_1', 'de3d_2': 'tl3d_2', 'de3d_3': 'tl3d_3',
-     'de3d_4': 'tl3d_4', 'de3d_5': 'tl3d_5',
-     'de3e_1': 'tl3e_1', 'de3e_2': 'tl3e_2', 'de3e_3': 'tl3e_3',
-     'de3e_4': 'tl3e_4', 'de3e_5': 'tl3e_5',
+     'de3d_1': 'tl3t_1', 'de3d_2': 'tl3t_2', 'de3d_3': 'tl3t_3',
+     'de3d_4': 'tl3t_4', 'de3d_5': 'tl3t_5',
+     'de3e_1': 'tl3n_1', 'de3e_2': 'tl3n_2', 'de3e_3': 'tl3n_3',
+     'de3e_4': 'tl3n_4', 'de3e_5': 'tl3n_5',
                        }
 ADD_INPUT_MAPPER = DE_ADD_INPUT_MAPPER
 
