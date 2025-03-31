@@ -79,7 +79,7 @@ import numpy as np
 import flawful
 import flawful.german
 
-from de_additional import create_tl_additional_output, check_flag_usage
+from additional import create_tl_additional_output, check_flag_usage
 
 #------------------------------------------------------------------------------
 # Input / Output directories should be set by the user before running.
