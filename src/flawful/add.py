@@ -289,7 +289,8 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
               ]
     df['target'] = [ x['hint'] + ': ' + x['target'] for x in ret_mtp ]
     df['answer'] = [ x['answer'] for x in ret_mtp ]
-    df['tl_for_headword'] = np.where(df.tl_xref != '', df.tl_xref, df.tl1)
+    df['tl_for_headword'] = np.where(df.tl_headword != '',
+                                     df.tl_headword, df.tl1)
     df['merge_id'] = df.tl_for_headword.map(str_to_wordlist_key)
     res_mc = df.chaplist.apply(flawful.init_chapter,
                                str_to_chapter=str_to_chapter)
@@ -376,14 +377,13 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
         - nl1 : Native language word or phrase
         - tl1_list : Primary target language word or phrase(s)
         - tl2_list : Secondary target language word or phrase(s).
-        - tl3_list : Expressions
-        - tl3_prompts_list : Prompts for expressions
         - tl_notes_list : Notes, including definitions. This is a
                 list of tokens. If a token matches the format in
                 `to_note_dict`, it will be processed and definition
                 information extracted. Other tokens are ignored.
         - tl_pronun : Contains pronunciation information. This is passed
                 through to the output file.
+        - part_of_speech : Part of speech. Used to generate prompt.
     aud_dicts : Dict
         See `aud_dicts` parameter in flawful.tag_audio_and_markup().
     wordlists : flawful.Wordlist
@@ -411,24 +411,27 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
         The required columns (in any order) are:
         - id : A unique number or string for each input row
         - tl1 : Similar meaning as main file, except this should be a
-                single word or phrase and not a token-delimited list
-        - tl_xref : If populated, will generate the headword for merging to
+                single word or phrase and not a token-delimited list.
+        - tl_headword : If populated, will generate the headword for merging to
                 the flagged records. Otherwise, `tl1` will be used.
-        - tl2 : Similar meaning as on main file
+        - tl2 : Similar meaning as on main file, except this should be a
+                single word or phrase and not a token-delimited list.
         - tl_answer : The meaning(s) of `tl1` in the target language, if
-                available. This is a list of strings. The number of items
-                in the list is only relevant when creating the prompt, so
-                the user knows how many meanings they are expected to
-                produce.
+                available. This is a string.
+        - tl_answer_list : `tl_answer`, but tokenized into a list. This is
+                used currently to determine how many answers are expected,
+                which is prinsted in the prompt.
         - nl_answer : The meaning(s) of `tl1` in the native language. At
                 least one of `tl_answer` or `nl_answer` must be populated.
-        - notes : Same meaning as `tl_notes` in the main file, except
-                unlike the main file, this field will never be parsed for
-                synonyms.
-        - pronun : Same meaning as `tl_pronun` in the main file
-        - tl1_hint : Same meaning as in the main file.
-        - part_of_speech : Same meaning as in the main file.
-        - chaplist : Same meaning as in the main file.
+        - nl_answer_list : `nl_answer`, but tokenized into a list. Same
+                rationale as for `tl_answer_list`.
+        - notes : Same meaning as `tl_notes` in the primary input file,
+                except this field is not parsed for synonyms. It is only
+                passed through to the output.
+        - pronun : Same meaning as `tl_pronun` in the primary input file
+        - tl1_hint : Same meaning as in the primary input file.
+        - part_of_speech : Same meaning as in the primary input file.
+        - chaplist : Same meaning as in the primary input file.
 
         In addition, fields can exist that are analagous to `tl3` and
         `tl3_prompts` in the main file. These should either be of the form:
