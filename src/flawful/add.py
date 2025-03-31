@@ -185,25 +185,22 @@ def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
             # at 1 instead of 0.
             def_dict = _to_def_dict(tl_notes_list)
             definition = ''
-            def_type = ''
+            answer_lang = ''
             if idx + 1 in def_dict:
                 if def_dict[idx+1][0]:
-                    def_type = f'[{tl1_hint}]'
-                    #def_type = f'[DE]'
+                    answer_lang = f'[{tl1_hint}]'
                     # def_dict value = (M, 'some text' | '')
                     definition = (tl1_list[def_dict[idx+1][0]-1] + ' '
                                   + def_dict[idx+1][1])
                 else:
                     # def_dict value = (None, 'some text')
-                    def_type = f'[{nl1_hint}|{tl1_hint}]'
-                    #def_type = f'[EN (or DE)]'
+                    answer_lang = f'[{nl1_hint}|{tl1_hint}]'
                     definition = def_dict[idx+1][1]
             else:
                 # Not in dictionary. The primary answer will be `nl1`, but
                 # this will also be on the back of the card, so we don't
                 # put it in `definition`.
-                def_type = f'[{nl1_hint}]'
-                #def_type = f'[EN]'
+                answer_lang = f'[{nl1_hint}]'
                 tl_notes = ';'.join(tl_notes_list)
                 if f'{idx+1}:' in tl_notes or f'{idx+1}=' in tl_notes:
                     # might happen when we accidentally used comma instead
@@ -217,7 +214,7 @@ def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
                         'nl1': nl1,
                         'part_of_speech': part_of_speech,
                         'tl_defs': definition,
-                        'def_type': def_type,
+                        'answer_lang': answer_lang,
                         'tl1': val.translate(transtab),
                         'tl2': tl2,
                         'tl_pronun': tl_pronun}
@@ -229,7 +226,7 @@ def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
 
 def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
                  str_to_wordlist_key, str_to_audio_key,
-                 braces_html_class, nl_hint, tl_hint, htag_prefix,
+                 braces_html_class, nl_abbr, tl_abbr, htag_prefix,
                  select_keys_no_audio):
     """Process `tl_override_pf` passed to `create_tl_additional_output`.
 
@@ -259,8 +256,8 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
         df['tl3d'] = flawful.columns_with_prefix_to_list(df, 'tl3d_')
         df['tl3e'] = flawful.columns_with_prefix_to_list(df, 'tl3e_')
         ret_val = [ flawful.combine_answer_lists(prompts=tl3p, answers_1=tl3d,
-                    answers_2=tl3e, answer1_hint=tl_hint,
-                    answer2_hint=nl_hint)
+                    answers_2=tl3e, answer1_hint=tl_abbr,
+                    answer2_hint=nl_abbr)
                 for (tl3p, tl3d, tl3e) in df[['tl3p','tl3d','tl3e']].values
                   ]
         #df['tl3_prompts_list'] = [ x['prompts'] for x in ret_val ]
@@ -282,7 +279,7 @@ def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
          flawful.make_hint_target_and_answer(
                      answer1=tl_answer, answer2=nl_answer,
                      answer1_list=tl_answer_list, answer2_list=nl_answer_list,
-                     answer1_hint=tl_hint,  answer2_hint=nl_hint)
+                     answer1_hint=tl_abbr,  answer2_hint=nl_abbr)
          for (tl_answer, nl_answer, tl_answer_list, nl_answer_list)
               in df[['tl_answer','nl_answer','tl_answer_list',
                      'nl_answer_list']].values
@@ -353,8 +350,8 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
                  tl_override_df = None,
                  str_to_chapter = None,
                  braces_html_class = None,
-                 nl_hint = 'N',
-                 tl_hint = 'T',
+                 nl_abbr = 'N',
+                 tl_abbr = 'T',
                  htag_prefix = 'TL',
                  flag_id_prefix = 'HW_',
                  output_mapper = None,
@@ -458,14 +455,14 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
         If not `None`, `pd.DataFrame.rename` will be called on the dataset
         that makes the additional output file just before the output is
         written, and this will be passed as the mapper.
-    nl_hint : str, optional (default='N')
+    nl_abbr : str, optional (default='N')
         The additional file could have answers in `tl_answer`, `nl_answer`
         or both. The card types derived from flagged words in `tl1` could
         have an answer also from `tl1`, `nl1`, or `tl_notes_list`. This
         hint is added to the prompt created on the front of the card
         indicating from which field the answer was taken.
-    tl_hint : str, optional (default='T')
-        See `nl_hint` above.
+    tl_abbr : str, optional (default='T')
+        See `nl_abbr` above.
     htag_prefix : str, optional (default='TL')
         Eventually passed to `flag_audio_and_markup`.
     flag_id_prefix : str, optional (default='HW_')
@@ -492,7 +489,7 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
                        tl1_flagged_dict_=tl1_flagged_dict,
                        str_to_wordlist_key=str_to_wordlist_key,
                        flags=flags,
-                       nl1_hint=nl_hint, tl1_hint=tl_hint,
+                       nl1_hint=nl_abbr, tl1_hint=tl_abbr,
                        nl1=nl1, part_of_speech=part_of_speech,
                        tl1_list=tl1_list, tl2_list=tl2_list,
                        tl_notes_list=tl_notes_list, tl_pronun=tl_pronun)
@@ -516,7 +513,7 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
     tl1_df['chapter'] = [x.chapter for x in res_tl1]
     tl1_df['Tags'] = [x.tags for x in res_tl1]
     vars_in_output = ['note_id', 'nl1', 'part_of_speech', 'tl_defs',
-                     'def_type', 'tl1', 'tl2', 'tl_pronun', 'tl_audio',
+                     'answer_lang', 'tl1', 'tl2', 'tl_pronun', 'tl_audio',
                      'tl1_color', 'chapter']
 
     if tl_override_df is not None:
@@ -527,7 +524,7 @@ def create_tl_additional_output(df, aud_dicts, wordlists,
                      str_to_audio_key=str_to_audio_key,
                      braces_html_class=braces_html_class,
                      select_keys_no_audio=select_keys_no_audio,
-                     nl_hint=nl_hint, tl_hint=tl_hint,
+                     nl_abbr=nl_abbr, tl_abbr=tl_abbr,
                      htag_prefix=htag_prefix,
                      )
         df2 = df2.rename({'audio': 'o_audio', 'chapter': 'o_chapter',

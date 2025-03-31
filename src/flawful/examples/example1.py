@@ -849,7 +849,7 @@ add_df = flawful.add.create_tl_additional_output(df_mod,
                  select_keys_no_audio=filter_text_not_audio_pre,
                  tl_override_df=de_override_df,
                  str_to_chapter=str_to_chapter,
-                 nl_hint='E', tl_hint='D', htag_prefix='DE',
+                 nl_abbr='E', tl_abbr='D', htag_prefix='DE',
                  braces_html_class=BRACES_HTML_CLASS,
                  flags=FLAGS)
 
