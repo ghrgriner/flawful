@@ -1022,9 +1022,8 @@ def braces_to_class(x, html_class) -> str:
     return x.replace('{',f'<div class={html_class}>').replace('}','</div>')
 
 def make_hint_target_and_answer(answer1: str, answer2: str,
-                                answer1_hint : str = '1',
-                                answer2_hint : str = '2',
-                                sep : str = ''):
+                          answer1_list : List[str], answer2_list : List[str],
+                          answer1_hint : str = '1', answer2_hint : str = '2'):
     """Make hint, target, and single answer from two answers.
 
     The expected use case is that perhaps the user has two answers to a
@@ -1040,12 +1039,14 @@ def make_hint_target_and_answer(answer1: str, answer2: str,
         First answer
     answer2 : str
         Second answer
+    answer1_list : str
+        Tokenized version of `answer1`
+    answer2_list : str
+        Tokenized version of `answer2`
     answer1_hint : str, optional (default='1')
         String to add to the `hint` output when `answer1` populated.
     answer2_hint : str, optional (default='2')
         String to add to the `hint` output when `answer2` populated.
-    sep: str, optional (default='')
-        Separator to use when generating `target` output.
 
     Returns
     -------
@@ -1058,28 +1059,24 @@ def make_hint_target_and_answer(answer1: str, answer2: str,
     - hint: f'[{answer1_hint}/{answer2_hint}]', f'[{answer1_hint}]',
             or f'[{answer2_hint}]'
     - answer: f'{answer1} ({answer2})', f'{answer1}', or f'{answer2}'
-    - target: define the 'primary answer' as `answer1` if populated,
-        and otherwise, `answer2`. If `sep == ''`, return '0'/'1' if
-        primary answer is ''/blanks or not. Otherwise, return string
-        giving number of tokens using separator `sep`.
+    - target: Define the 'primary answer' as `answer1` if populated,
+        and otherwise, `answer2`. When `answerN` in the primary answer,
+        this is the number of tokens in `answerN_list`.
     """
     if answer1 and answer2:
         hint = f'[{answer1_hint}/{answer2_hint}]'
-        answer_for_target = answer1
+        answer_for_target = answer1_list
         answer = answer1 + ' (' + answer2 + ')'
     elif answer1:
         hint = f'[{answer1_hint}]'
-        answer_for_target = answer1
+        answer_for_target = answer1_list
         answer = answer1
     else:
         hint = f'[{answer2_hint}]'
-        answer_for_target = answer2
+        answer_for_target = answer2_list
         answer = answer2
 
-    if sep:
-        target = str(len(answer_for_target.split(sep)))
-    else:
-        target = str(int(bool(answer_for_target.strip())))
+    target = str(count_tokens_list(answer_for_target))
 
     return {'hint': hint, 'answer': answer, 'target': target}
 
@@ -1111,8 +1108,9 @@ def combine_answer_lists(prompts, answers_1, answers_2,
     for idx, val in enumerate(prompts):
         if val:
             mhta = make_hint_target_and_answer(
-                answer1=answers_1[idx],    answer2=answers_2[idx],
-                answer1_hint=answer1_hint, answer2_hint=answer2_hint, sep='')
+                answer1=answers_1[idx],        answer2=answers_2[idx],
+                answer1_list=[answers_1[idx]], answer2_list=[answers_2[idx]],
+                answer1_hint=answer1_hint,     answer2_hint=answer2_hint)
             out_hints.append(mhta['hint'])
             out_answers.append(mhta['answer'])
             if prepend_hint:

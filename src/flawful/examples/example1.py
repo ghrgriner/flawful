@@ -805,6 +805,10 @@ if DE_ADDITIONAL_INPUT_FILE is not None:
                                  dtype={'id': str}, quoting=csv.QUOTE_NONE)
     de_override_df['pronun'] = de_override_df.pronun.map(
             flawful.german.show_vowel_length)
+    de_override_df['en_answer_list'] = de_override_df.en_answer.map(
+            lambda x: x.split(';'))
+    de_override_df['de_answer_list'] = de_override_df.de_answer.map(
+            lambda x: x.split(';'))
 else:
     de_override_df = None
 
@@ -818,7 +822,7 @@ create_de_additional_output(df.drop(columns=['de1','de2']),
                  str_to_chapter=str_to_chapter,
                  braces_html_class=BRACES_HTML_CLASS,
                  output_mapper=DE_ADD_OUTPUT_MAPPER,
-                 sep=',', flags=FLAGS)
+                 flags=FLAGS)
 
 #------------------------------------------------------------------------------
 # Print words in various external lists that were not in the input notes

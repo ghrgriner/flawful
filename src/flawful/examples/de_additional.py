@@ -281,8 +281,11 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
     ret_mtp = [
          flawful.make_hint_target_and_answer(
                      answer1=de_answer, answer2=en_answer,
-                     answer1_hint=de_hint,  answer2_hint=en_hint,  sep=';')
-         for (de_answer, en_answer) in df[['de_answer','en_answer']].values
+                     answer1_list=de_answer_list, answer2_list=en_answer_list,
+                     answer1_hint=de_hint,  answer2_hint=en_hint)
+         for (de_answer, en_answer, de_answer_list, en_answer_list)
+              in df[['de_answer','en_answer','de_answer_list',
+                     'en_answer_list']].values
               ]
     df['target'] = [ x['hint'] + ': ' + x['target'] for x in ret_mtp ]
     df['answer'] = [ x['answer'] for x in ret_mtp ]
@@ -346,7 +349,6 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                  str_to_audio_key,
                  select_keys_no_audio,
                  flags,
-                 sep = ',',
                  de_override_df = None,
                  str_to_chapter = None,
                  braces_html_class = None,
@@ -401,8 +403,6 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     flags : str
         String containing flags. Each character in the string is considered
         a single flag.
-    sep : str
-        Delimiter for `de1`.
     de_override_df : pd.DataFrame, optional
         Additional input data frame for generating notes / cards where the
         German word is on the front. This will override any cards with the
