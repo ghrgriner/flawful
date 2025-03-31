@@ -858,7 +858,7 @@ if DE_ADD_OUTPUT_MAPPER is not None:
 
 add_outfile = os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX)
 add_df.to_csv(f'{add_outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
-              index=False)
+              index=False, header=False)
 add_df[0:0].to_csv(f'{add_outfile}_fields.txt',
                    sep='\t', quoting=csv.QUOTE_NONE, index=False)
 
