@@ -808,7 +808,7 @@ if DE_ADDITIONAL_INPUT_FILE is not None:
 else:
     de_override_df = None
 
-create_de_additional_output(df,
+create_de_additional_output(df.drop(columns=['de1','de2']),
                  outfile=os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX),
                  aud_dicts=aud_dicts, wordlists=de_dicts,
                  str_to_wordlist_key=make_wordlist_key_notes,

@@ -95,10 +95,9 @@ def check_flag_usage(col1, col2, flags):
                     raise ValueError(f'{flag} not in col1 and col2: '
                                      + col1 + ' | ' + col2)
 
-def _add_unflagged_headword_to_set(col, set_, str_to_wordlist_key, flags, sep):
+def _add_unflagged_headword_to_set(col_list, set_, str_to_wordlist_key, flags):
     """Add headwords for all unflagged tokens to the input set.
     """
-    col_list = col.split(sep)
     flag_set = set(flags)
     for val in col_list:
         headword = str_to_wordlist_key(val)
@@ -155,7 +154,7 @@ def to_def_dict(def_list):
 
 def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                    flags, en1, part_of_speech, en1_hint, de1_hint,
-                   de2, de1_list, de2_list, de_notes_list, de_pronun):
+                   de1_list, de2_list, de_notes_list, de_pronun):
     """Add items to dictionary with the fields for the DE1_Flagged cards.
 
     Returns
@@ -372,10 +371,8 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     df : pd.DataFrame
         A data frame with the following columns:
         - en1 : English word or phrase
-        - de1 : Primary German word or phrase(s)
-        - de2 : Secondary German word or phrase(s). Semicolon delimited
-                when (`de1` contains '(in)' and `part_of_speech == 'N'`)
-                or when `part_of_speech == 'V'`.
+        - de1_list : Primary German word or phrase(s)
+        - de2_list : Secondary German word or phrase(s).
         - de3_list : Expressions
         - de3_prompts_list : Prompts for expressions
         - de_notes_list : Notes, including definitions. This is a
@@ -484,13 +481,12 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     de1_not_flagged_set = set()
     de1_flagged_dict = {}
 
-    df.de1.map(lambda x: _add_unflagged_headword_to_set(x, de1_not_flagged_set,
-                                                        str_to_wordlist_key,
-                                                        flags, sep))
+    df.de1_list.map(lambda x: _add_unflagged_headword_to_set(x,
+          de1_not_flagged_set, str_to_wordlist_key, flags))
 
-    for  (en1,    part_of_speech,   de2,  de_notes_list,   de_pronun,
+    for  (en1,    part_of_speech, de_notes_list, de_pronun,
           de1_list,    de2_list) in df[
-        ['en1', 'part_of_speech', 'de2', 'de_notes_list', 'de_pronun',
+        ['en1', 'part_of_speech','de_notes_list','de_pronun',
          'de1_list', 'de2_list']].values:
         make_new_cards(exclude_headwords=de1_not_flagged_set,
                        de1_flagged_dict_=de1_flagged_dict,
@@ -498,9 +494,8 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                        flags=flags,
                        en1_hint=en_hint, de1_hint=de_hint,
                        en1=en1, part_of_speech=part_of_speech,
-                       de2=de2, de1_list=de1_list,
-                       de2_list=de2_list, de_notes_list=de_notes_list,
-                       de_pronun=de_pronun)
+                       de1_list=de1_list, de2_list=de2_list,
+                       de_notes_list=de_notes_list, de_pronun=de_pronun)
     de1_df = pd.DataFrame.from_dict(de1_flagged_dict, orient='index')
 
     res_de1 = [
