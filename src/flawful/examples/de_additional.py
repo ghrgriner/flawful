@@ -163,9 +163,8 @@ def to_def_dict(col, sep):
     return ret_dict
 
 def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
-                   sep, flags, en1, part_of_speech,
-                   en1_hint, de1_hint,
-                   de1, de2, de_notes, de_pronun):
+                   flags, en1, part_of_speech, en1_hint, de1_hint,
+                   de2, de1_list, de2_list, de_notes, de_pronun):
     """Add items to dictionary with the fields for the DE1_Flagged cards.
 
     Returns
@@ -178,7 +177,6 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
     value is the column value.
     """
     transtab = str.maketrans('', '', flags)
-    de1_list = de1.split(sep)
     flag_set = set(flags)
     for idx, val in enumerate(de1_list):
         val = val.strip()
@@ -188,18 +186,9 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                 continue
 
             # get the token with the same index from `de2`
-            if (('(in)' in de1 and part_of_speech == 'N')
-                or part_of_speech == 'V'):
-                try:
-                    de2 = de2.split(';')[idx]
-                except IndexError:
-                    de2 = ''
-            elif part_of_speech == 'N':
-                try:
-                    de2 = de2.split(',')[idx]
-                except IndexError:
-                    de2 = ''
-            else:
+            try:
+                de2 = de2_list[idx]
+            except IndexError:
                 de2 = ''
 
             # Make dictionary containings definitions. Key is index, starting
@@ -507,17 +496,18 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                                                         str_to_wordlist_key,
                                                         flags, sep))
 
-    for (en1,    part_of_speech,   de1,   de2,   de_notes,
-         de_pronun) in df[
-        ['en1', 'part_of_speech', 'de1', 'de2', 'de_notes',
-        'de_pronun']].values:
+    for  (en1,    part_of_speech,   de2,   de_notes,   de_pronun,
+          de1_list,    de2_list) in df[
+        ['en1', 'part_of_speech', 'de2', 'de_notes', 'de_pronun',
+         'de1_list', 'de2_list']].values:
         make_new_cards(exclude_headwords=de1_not_flagged_set,
                        de1_flagged_dict_=de1_flagged_dict,
                        str_to_wordlist_key=str_to_wordlist_key,
-                       sep=sep, flags=flags,
+                       flags=flags,
                        en1_hint=en_hint, de1_hint=de_hint,
                        en1=en1, part_of_speech=part_of_speech,
-                       de1=de1, de2=de2, de_notes=de_notes,
+                       de2=de2, de1_list=de1_list,
+                       de2_list=de2_list, de_notes=de_notes,
                        de_pronun=de_pronun)
     de1_df = pd.DataFrame.from_dict(de1_flagged_dict, orient='index')
 

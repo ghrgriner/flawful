@@ -166,6 +166,12 @@ KEEP_INITIAL_DER_DAS_DIE_PATTERN = re.compile(
 #------------------------------------------------------------------------------
 # Functions
 #------------------------------------------------------------------------------
+def tokenize_de2(de1, de2, part_of_speech):
+    if part_of_speech == 'V' or (part_of_speech == 'N' and '(in)' in de1):
+        return de2.split(';')
+    else:
+        return de2.split(',')
+
 def select_output_columns(df_):
     """Select output columns from the data frame.
 
@@ -705,6 +711,9 @@ df['de1_at1_sd1_color'] = np.select(
      df.de1_color + '; A: ' + df.at1_color,
      df.de1_color + '; CH: ' + df.sd1_color], default=df.de1_color)
 
+df['de1_list'] = df.de1.map(lambda x: x.split(','))
+df['de2_list'] = [ tokenize_de2(de1=row[0], de2=row[1], part_of_speech=row[2])
+                   for row in df[['de1','de2','part_of_speech']].values]
 df['de2_problems'] = [
          flawful.german.check_de2_problems(de1=row[0], de2=row[1],
                                            part_of_speech=row[2])
