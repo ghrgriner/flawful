@@ -1,42 +1,42 @@
-#    Functions to create additional cards with German prompts for study.
+#    Create additional cards with target language prompts for study.
 #    Copyright (C) 2025 Ray Griner (rgriner_fwd@outlook.com)
 
-""" Functions to create additional cards with German prompts for study.
+""" Create additional cards with target language prompts for study.
 
-They are additional in the sense that some cards with German prompts are
-already created by reversing cards with English prompts for notes in the
-primary input file. The additional cards are from one of two sources:
-(1) flagged words from `de1` in the primary input file (described below),
-and (2) from notes entered in a second input text file.
+They are additional in the sense that some cards with target language
+prompts are already created by reversing cards with native language prompts
+for notes in the primary input file. The additional cards are from one of
+two sources: (1) flagged words from `tl1` in the primary input file
+(described below), and (2) from notes entered in a second input text file.
 
-The general idea is that we study some cards where English is on the front,
-and the target language (German in this case) is on the back. In our notes,
-the primary answer is in `de1`, which is the translation(s) of `en1`.
-Secondary information like verb forms and noun plurals is in `de2`, and
-expressions and their English translation (or some other prompt) are in the
-fields `de3` and `de3_prompt`. These last two fields are delimited, where
-each token will be converted to a row in a table on the generated card.
+The general idea is that we study some cards where the native language is
+on the front and the target language is on the back. The primary answer
+must be in `tl1`, which is the translation of `nl1`.
+Secondary information (which depending on the language might be verb forms
+or noun plurals) is in `tl2`, and expressions or other questions the user
+wants to answer are in `tl3` and `tl3_prompt`.
 
-The point is that a given English card may have more than one entry in
-`de1`. However, we do not think it is particularly useful to make ourselves
-remember all possible synonyms for a given English word. Instead, if there
-are a lot of synonyms, we mark the less common words with a character that
-we call a flag (e.g., '°' or '†'). When a word is flagged, we allow the
-card to be considered 'right' even we can't produce the flagged word(s).
+The point is that a given native language entry may have more than one word
+or phrase associated in `tl1`. However, we do not think it is particularly
+useful to make ourselves remember all possible synonyms for a given native
+language word. Instead, if there are a lot of synonyms, we mark the less
+common words with a character that we call a flag (e.g., '°' or '†'). When
+a word is flagged, we allow the card to be considered 'right' even we can't
+produce the flagged word(s).
 
 We still want to ensure we have receptive knowledge of a flagged word, so
 this file has code that makes notes (that will be turned into flashcards)
-where the flagged tokens from `de1` are the front side of the card.
+where the flagged tokens from `nl1` are the front side of the card.
 
 The back side of the card is obtained by parsing the field containing notes
 to look for tokens that are formatted in a certain way (see `to_def_dict`
-for details) or by defaulting to `en1`. This last part is perhaps
+for details) or by defaulting to `nl1`. This last part is perhaps
 unnecessarily complex, and users may want to consider simply keeping the
-raw data for these notes in the secondary input file.
+raw data for these notes in the additional input file.
 """
 
 #------------------------------------------------------------------------------
-# File:   de_additional.py
+# File:   additional.py
 # Date:   2025-03-16
 # Author: Ray Griner
 #------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ def _add_unflagged_headword_to_set(col_list, set_, str_to_wordlist_key, flags):
         if headword and flag_set.isdisjoint(val):
             set_.add(headword)
 
-def to_def_dict(def_list):
+def _to_def_dict(def_list):
     """Obtain definitions from `def_list` and put into a dictionary.
 
     `def_list` should contain tokens from which the definition can be
@@ -117,17 +117,17 @@ def to_def_dict(def_list):
     - 'N: some text'
 
     N and M both refer to the position of words in some other field that
-    contains German words using an index that starts at 1 instead of the
-    usual Python 0. (In the `make_new_cards` function this 'some other
-    field' is `de1`, and for concreteness we will use this name here, but
+    contains target language words using an index that starts at 1 instead of
+    the usual Python 0. (In the `make_new_cards` function this 'some other
+    field' is `tl1`, and for concreteness we will use this name here, but
     note that this function does not use the name of the other field.)
 
     Returning to the contents of `col`, a token that starts with '3=2'
-    means that if we make a card with the third token from `de1` on the
+    means that if we make a card with the third token from `tl1` on the
     front side, the primary answer on the back side will be the second
-    token from `de1`.
+    token from `tl1`.
 
-    We do not expect all tokens in `de1` to have an entry in the output.
+    We do not expect all tokens in `tl1` to have an entry in the output.
 
     Returns
     -------
@@ -152,14 +152,14 @@ def to_def_dict(def_list):
             ret_dict[int(val[0])] = (None, val[3:])
     return ret_dict
 
-def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
-                   flags, en1, part_of_speech, en1_hint, de1_hint,
-                   de1_list, de2_list, de_notes_list, de_pronun):
-    """Add items to dictionary with the fields for the DE1_Flagged cards.
+def _make_new_cards(exclude_headwords, tl1_flagged_dict_, str_to_wordlist_key,
+                   flags, nl1, part_of_speech, nl1_hint, tl1_hint,
+                   tl1_list, tl2_list, tl_notes_list, tl_pronun):
+    """Add items to dictionary with the fields for the TL Flagged cards.
 
     Returns
     -------
-    None. `de1_flagged_dict_` has records added as a side-effect. This
+    None. `tl1_flagged_dict_` has records added as a side-effect. This
     output dictionary can be converted to a data frame by the calling
     function where each item in the dictionary is a row in the data frame.
     The key of each entry is the headword for the token. The value of the
@@ -168,135 +168,132 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
     """
     transtab = str.maketrans('', '', flags)
     flag_set = set(flags)
-    for idx, val in enumerate(de1_list):
+    for idx, val in enumerate(tl1_list):
         val = val.strip()
         headword = str_to_wordlist_key(val)
         if not flag_set.isdisjoint(val):
             if headword in exclude_headwords:
                 continue
 
-            # get the token with the same index from `de2`
+            # get the token with the same index from `tl2`
             try:
-                de2 = de2_list[idx]
+                tl2 = tl2_list[idx]
             except IndexError:
-                de2 = ''
+                tl2 = ''
 
             # Make dictionary containings definitions. Key is index, starting
             # at 1 instead of 0.
-            def_dict = to_def_dict(de_notes_list)
+            def_dict = _to_def_dict(tl_notes_list)
             definition = ''
             def_type = ''
             if idx + 1 in def_dict:
                 if def_dict[idx+1][0]:
-                    def_type = f'[{de1_hint}]'
+                    def_type = f'[{tl1_hint}]'
                     # def_dict value = (M, 'some text' | '')
-                    definition = (de1_list[def_dict[idx+1][0]-1] + ' '
+                    definition = (tl1_list[def_dict[idx+1][0]-1] + ' '
                                   + def_dict[idx+1][1])
                 else:
                     # def_dict value = (None, 'some text')
-                    def_type = f'[{en1_hint}|{de1_hint}]'
+                    def_type = f'[{nl1_hint}|{tl1_hint}]'
                     definition = def_dict[idx+1][1]
             else:
-                # Not in dictionary. The primary answer will be `en1`, but
+                # Not in dictionary. The primary answer will be `nl1`, but
                 # this will also be on the back of the card, so we don't
                 # put it in `definition`.
-                def_type = f'[{en1_hint}]'
-                de_notes = ';'.join(de_notes_list)
-                if f'{idx+1}:' in de_notes or f'{idx+1}=' in de_notes:
+                def_type = f'[{nl1_hint}]'
+                tl_notes = ';'.join(tl_notes_list)
+                if f'{idx+1}:' in tl_notes or f'{idx+1}=' in tl_notes:
                     # might happen when we accidentally used comma instead
-                    # of semi-colon to tokenize de3
+                    # of semi-colon to tokenize tl3
                     raise ValueError(f'ERROR: {val} incorrect format def |'
-                                     f' {idx+1} | {de_notes}')
+                                     f' {idx+1} | {tl_notes}')
             if not headword:
-                # Empty headwords are permitted for the SPDEFull note type,
-                # but not for this note type. If this is raised, change the
-                # note so the headword isn't empty.
                 raise ValueError('headword empty for val = ' + val)
 
             dict_val = {'merge_id': 'HW_' + headword,
-                        'en1': en1,
+                        'nl1': nl1,
                         'part_of_speech': part_of_speech,
-                        'de_defs': definition,
+                        'tl_defs': definition,
                         'def_type': def_type,
-                        'de1': val.translate(transtab),
-                        'de2': de2,
-                        'de_pronun': de_pronun}
+                        'tl1': val.translate(transtab),
+                        'tl2': tl2,
+                        'tl_pronun': tl_pronun}
             # If headword is duplicated, silently keep the first one entered.
-            if headword in de1_flagged_dict_:
+            if headword in tl1_flagged_dict_:
                 pass
             else:
-                de1_flagged_dict_[headword] = dict_val
+                tl1_flagged_dict_[headword] = dict_val
 
-def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
+def _process_tl_override_df(df, aud_dicts, wordlists, str_to_chapter,
                  str_to_wordlist_key, str_to_audio_key,
-                 braces_html_class, en_hint, de_hint, htag_prefix,
+                 braces_html_class, nl_hint, tl_hint, htag_prefix,
                  select_keys_no_audio):
-    """Process `de_override_pf` passed to `create_de_additional_output`.
+    """Process `tl_override_pf` passed to `create_tl_additional_output`.
 
     Parameters
     ----------
-    The `df` parameter to this function is the `de_override_df` parameter
-    to `create_de_additional_output`. All parameters are passed through
-    from `create_de_additional_output`. See that function for details.
+    The `df` parameter to this function is the `tl_override_df` parameter
+    to `create_tl_additional_output`. All parameters are passed through
+    from `create_tl_additional_output`. See that function for details.
 
     Returns
     -------
     A data frame (pd.DataFrame) with the same number of observations as the
     input `df`. The columns are:
-       'id','merge_id','de_table_answer','de_table_prompt','pronun','notes',
+       'id','merge_id','tl_table_answer','tl_table_prompt','pronun','notes',
        'audio','chapter','Tags'.
     """
 
-    # TODO: for now, match the fact that we originally built `de3_prompts`
+    # TODO: for now, match the fact that we originally built `tl3_prompts`
     # by '; '.join(...), in other words, to replicate we need to add a space
     # after the first value in the list.
     def add_space(list_):
         return [ (' ' if idx > 0 else '') + val
                  for idx, val in enumerate(list_) ]
 
-    if ('de3_prompts_list' not in df and 'de3_list' not in df):
-        df['de3p'] = flawful.columns_with_prefix_to_list(df, 'de3p_')
-        df['de3d'] = flawful.columns_with_prefix_to_list(df, 'de3d_')
-        df['de3e'] = flawful.columns_with_prefix_to_list(df, 'de3e_')
-        ret_val = [ flawful.combine_answer_lists(prompts=de3p, answers_1=de3d,
-                    answers_2=de3e, answer1_hint=de_hint,
-                    answer2_hint=en_hint)
-                for (de3p, de3d, de3e) in df[['de3p','de3d','de3e']].values
+    if ('tl3_prompts_list' not in df and 'tl3_list' not in df):
+        df['tl3p'] = flawful.columns_with_prefix_to_list(df, 'tl3p_')
+        df['tl3d'] = flawful.columns_with_prefix_to_list(df, 'tl3d_')
+        df['tl3e'] = flawful.columns_with_prefix_to_list(df, 'tl3e_')
+        ret_val = [ flawful.combine_answer_lists(prompts=tl3p, answers_1=tl3d,
+                    answers_2=tl3e, answer1_hint=tl_hint,
+                    answer2_hint=nl_hint)
+                for (tl3p, tl3d, tl3e) in df[['tl3p','tl3d','tl3e']].values
                   ]
-        #df['de3_prompts_list'] = [ x['prompts'] for x in ret_val ]
-        #df['de3_list'] = [ x['answers'] for x in ret_val ]
-        df['de3_prompts_list'] = [ add_space(x['prompts']) for x in ret_val ]
-        df['de3_list'] = [ add_space(x['answers']) for x in ret_val ]
-    elif ('de3_prompts_list' in df or 'de3_list' in df):
-        raise ValueError('Both or none of `de3_prompts_list` and `de3_list`'
+        #df['tl3_prompts_list'] = [ x['prompts'] for x in ret_val ]
+        #df['tl3_list'] = [ x['answers'] for x in ret_val ]
+        df['tl3_prompts_list'] = [ add_space(x['prompts']) for x in ret_val ]
+        df['tl3_list'] = [ add_space(x['answers']) for x in ret_val ]
+    elif ('tl3_prompts_list' in df or 'tl3_list' in df):
+        raise ValueError('Both or none of `tl3_prompts_list` and `tl3_list`'
                          'columns should be present in `df`.')
 
     def braces_to_class_list(x):
         return [ flawful.braces_to_class(val, html_class=braces_html_class)
                  for val in x ]
     if braces_html_class is not None:
-        df['de3_prompts_list'] = df.de3_prompts_list.map(braces_to_class_list)
-        df['de3_list'] = df.de3_list.map(braces_to_class_list)
+        df['tl3_prompts_list'] = df.tl3_prompts_list.map(braces_to_class_list)
+        df['tl3_list'] = df.tl3_list.map(braces_to_class_list)
 
     ret_mtp = [
          flawful.make_hint_target_and_answer(
-                     answer1=de_answer, answer2=en_answer,
-                     answer1_list=de_answer_list, answer2_list=en_answer_list,
-                     answer1_hint=de_hint,  answer2_hint=en_hint)
-         for (de_answer, en_answer, de_answer_list, en_answer_list)
-              in df[['de_answer','en_answer','de_answer_list',
-                     'en_answer_list']].values
+                     answer1=tl_answer, answer2=nl_answer,
+                     answer1_list=tl_answer_list, answer2_list=nl_answer_list,
+                     answer1_hint=tl_hint,  answer2_hint=nl_hint)
+         for (tl_answer, nl_answer, tl_answer_list, nl_answer_list)
+              in df[['tl_answer','nl_answer','tl_answer_list',
+                     'nl_answer_list']].values
               ]
     df['target'] = [ x['hint'] + ': ' + x['target'] for x in ret_mtp ]
     df['answer'] = [ x['answer'] for x in ret_mtp ]
-    df['de_for_headword'] = np.where(df.de_xref != '', df.de_xref, df.de1)
-    df['merge_id'] = 'HW_' + df.de_for_headword.map(str_to_wordlist_key)
+    df['tl_for_headword'] = np.where(df.tl_xref != '', df.tl_xref, df.tl1)
+    df['merge_id'] = 'HW_' + df.tl_for_headword.map(str_to_wordlist_key)
     res_mc = df.chaplist.apply(flawful.init_chapter,
                                str_to_chapter=str_to_chapter)
     df['min_chap'] = [ x['chapter'] for x in res_mc ]
     df['chap_tags'] = [ x['tags'] for x in res_mc ]
 
-    res_de1 = [
+    res_tl1 = [
           flawful.tag_audio_and_markup(audio_dicts=aud_dicts,
                  wordlists=wordlists,
                  str_to_wordlist_key=str_to_wordlist_key,
@@ -305,28 +302,28 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
                  htag_prefix=htag_prefix,
                  chapter=row[1],
                  tokens=[[row[0]]],
-                 names=['de1'],
+                 names=['tl1'],
                  assign_chapter=[True])
-          for row in df[['de1','min_chap']].values
+          for row in df[['tl1','min_chap']].values
               ]
-    df['de1_color'] = [''.join(x.markup_output['de1']) for x in res_de1]
-    df['audio'] = [x.audio_output for x in res_de1]
-    df['chapter'] = [x.chapter for x in res_de1]
-    df['Tags'] = [x.tags for x in res_de1]
+    df['tl1_color'] = [''.join(x.markup_output['tl1']) for x in res_tl1]
+    df['audio'] = [x.audio_output for x in res_tl1]
+    df['chapter'] = [x.chapter for x in res_tl1]
+    df['Tags'] = [x.tags for x in res_tl1]
     df['Tags'] = df['chap_tags'] + ' ' + df['Tags']
-    df['prompt'] = (df.de1_color + ' (' + df.part_of_speech + ') '
+    df['prompt'] = (df.tl1_color + ' (' + df.part_of_speech + ') '
                        + df.target)
-    df['prompt'] = np.where(df.de1_hint == '', df.prompt,
-                            df.prompt + ' [' + df.de1_hint + ']')
+    df['prompt'] = np.where(df.tl1_hint == '', df.prompt,
+                            df.prompt + ' [' + df.tl1_hint + ']')
 
     make_rv = [
         flawful.make_prompt_and_answer_table(
             prompts=[r[0],''], answers=[r[1],''],
             expr_prompts=r[2], expr_answers=r[3],
             drop_empty_rows=True)
-       for r in df[['prompt','answer','de3_prompts_list', 'de3_list']].values
+       for r in df[['prompt','answer','tl3_prompts_list', 'tl3_list']].values
               ]
-    df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
+    df['tl_table_prompt'] = [ x['prompt'] for x in make_rv ]
 
     # rerun to make answer, only difference is `prompts` parameter
     make_rv = [
@@ -334,32 +331,32 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
             prompts=[r[0],r[4]], answers=[r[1],''],
             expr_prompts=r[2], expr_answers=r[3],
             drop_empty_rows=True)
-       for r in df[['prompt','answer','de3_prompts_list',
-                    'de3_list','de2']].values
+       for r in df[['prompt','answer','tl3_prompts_list',
+                    'tl3_list','tl2']].values
               ]
-    df['de_table_answer'] = [ x['answer'] for x in make_rv ]
+    df['tl_table_answer'] = [ x['answer'] for x in make_rv ]
 
-    df = df[['id','merge_id','de_table_answer', 'de_table_prompt','pronun',
+    df = df[['id','merge_id','tl_table_answer', 'tl_table_prompt','pronun',
        'notes','audio','chapter','Tags']]
 
     return df
 
-def create_de_additional_output(df, outfile, aud_dicts, wordlists,
+def create_tl_additional_output(df, outfile, aud_dicts, wordlists,
                  str_to_wordlist_key,
                  str_to_audio_key,
                  select_keys_no_audio,
                  flags,
-                 de_override_df = None,
+                 tl_override_df = None,
                  str_to_chapter = None,
                  braces_html_class = None,
-                 en_hint = 'E',
-                 de_hint = 'D',
-                 htag_prefix = 'DE',
+                 nl_hint = 'N',
+                 tl_hint = 'T',
+                 htag_prefix = 'TL',
                  output_mapper = None,
                               ):
-    """Create output file for `DE additional` notes.
+    """Create output file for `TL additional` notes.
 
-    The `de1` field is parsed and (1) tokens marked with '°' are
+    The `tl1` field is parsed and (1) tokens marked with '°' are
     identified.  (2) tokens NOT marked with '°' or '†' are then identified.
     A row in the output will be created for each headword in (1) that is
     not in the set of headwords for (2).
@@ -372,16 +369,16 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     ----------
     df : pd.DataFrame
         A data frame with the following columns:
-        - en1 : English word or phrase
-        - de1_list : Primary German word or phrase(s)
-        - de2_list : Secondary German word or phrase(s).
-        - de3_list : Expressions
-        - de3_prompts_list : Prompts for expressions
-        - de_notes_list : Notes, including definitions. This is a
+        - nl1 : Native language word or phrase
+        - tl1_list : Primary target language word or phrase(s)
+        - tl2_list : Secondary target language word or phrase(s).
+        - tl3_list : Expressions
+        - tl3_prompts_list : Prompts for expressions
+        - tl_notes_list : Notes, including definitions. This is a
                 list of tokens. If a token matches the format in
                 `to_note_dict`, it will be processed and definition
                 information extracted. Other tokens are ignored.
-        - de_pronun : Contains pronunciation information. This is passed
+        - tl_pronun : Contains pronunciation information. This is passed
                 through to the output file.
     outfile : str
         File name and path for prefix output file. The program will append
@@ -403,73 +400,71 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     flags : str
         String containing flags. Each character in the string is considered
         a single flag.
-    de_override_df : pd.DataFrame, optional
+    tl_override_df : pd.DataFrame, optional
         Additional input data frame for generating notes / cards where the
-        German word is on the front. This will override any cards with the
-        same headword generated from `df`. This is done because the cards
-        generated from `df` have some limitations. The front side of the
-        card is basically just what is extracted from `de1`, and there was
-        no easy way to add hints or a table of other prompts for
+        target language word is on the front. This will override any cards
+        with the same headword generated from `df`. This is done because
+        the cards generated from `df` have some limitations. The front side
+        of the card is basically just what is extracted from `tl1`, and
+        there was no easy way to add hints or a table of other prompts for
         expressions containing the headword.
 
         The required columns (in any order) are:
         - id : A unique number or string for each input row
-        - de1 : Similar meaning as main file, except this should be a
+        - tl1 : Similar meaning as main file, except this should be a
                 single word or phrase and not a token-delimited list
-        - de_xref : If populated, will generate the headword for merging to
-                the flagged records. Otherwise, `de1` will be used.
-        - de2 : Similar meaning as on main file
-        - de_answer : The meaning(s) of `de1` in German, if available. This
-                can be a semi colon delimited list. The number of items in
-                the list is only relevant when creating the prompt, so the
-                user knows how many meanings they are expected to produce.
-        - en_answer : The meaning(s) of `de1` in English. At least one of
-                `de_answer` or `en_answer` must be populated.
-        - notes : Same meaning as `de_notes` in the main file, except
+        - tl_xref : If populated, will generate the headword for merging to
+                the flagged records. Otherwise, `tl1` will be used.
+        - tl2 : Similar meaning as on main file
+        - tl_answer : The meaning(s) of `tl1` in the target language, if
+                available. This is a list of strings. The number of items
+                in the list is only relevant when creating the prompt, so
+                the user knows how many meanings they are expected to
+                produce.
+        - nl_answer : The meaning(s) of `tl1` in the native language. At
+                least one of `tl_answer` or `nl_answer` must be populated.
+        - notes : Same meaning as `tl_notes` in the main file, except
                 unlike the main file, this field will never be parsed for
                 synonyms.
-        - pronun : Same meaning as `de_pronun` in the main file
-        - de1_hint : Same meaning as in the main file.
+        - pronun : Same meaning as `tl_pronun` in the main file
+        - tl1_hint : Same meaning as in the main file.
         - part_of_speech : Same meaning as in the main file.
         - chaplist : Same meaning as in the main file.
 
-        In addition, fields can exist that are analagous to `de3` and
-        `de3_prompts` in the main file. These should either be of the form:
-           - de3_list : Same meaning as `de3` in the main file, except
+        In addition, fields can exist that are analagous to `tl3` and
+        `tl3_prompts` in the main file. These should either be of the form:
+           - tl3_list : Same meaning as `tl3` in the main file, except
              is a list of the tokens instead of a string.
-           - de3_prompts_list : Same meaning as `de3_prompts` in the main
+           - tl3_prompts_list : Same meaning as `tl3_prompts` in the main
              file, except is a list of the tokens instead of a string.
         Alternatively, users can use fields that will be used to generate
-        `de3_list` and `de3_prompts_list`. In this case, the input fields
+        `tl3_list` and `tl3_prompts_list`. In this case, the input fields
         should each contain a single token.
-           - de3p_N : The Nth token for `de3_prompts_list`
-           - de3d_N : The Nth token for `de3_list` (in German)
-           - de3e_N : The Nth token for `de3_list` (in English)
+           - tl3p_N : The Nth token for `tl3_prompts_list`
+           - tl3d_N : The Nth token for `tl3_list` (in target language)
+           - tl3e_N : The Nth token for `tl3_list` (in native language)
     str_to_chapter : Callable[[str], int], optional
-        Function to convert strings in `de_override_df.chaplist` to integer
+        Function to convert strings in `tl_override_df.chaplist` to integer
         representing the minimum chapter. Passed to `init_chapter()`. See
-        that function for details. Must be populated if `de_override_df` is
+        that function for details. Must be populated if `tl_override_df` is
         not None.
     braces_html_class : str, optional
-        If populated, when processing `de_override_df` (if applicable),
-        '{text}' in the `de3_list` or `de3_prompts_list` tokens is
+        If populated, when processing `tl_override_df` (if applicable),
+        '{text}' in the `tl3_list` or `tl3_prompts_list` tokens is
         converted to: '<div class={braces_html_class}>text</div>'.
     output_mapper : optional
         If not `None`, `pd.DataFrame.rename` will be called on the dataset
         that makes the additional output file just before the output is
-        written, and this will be passed as the mapper. This is because the
-        default names generated have `en` prefixes (meaning English) and
-        `de` prefixes (meaning German). Users can then store words in other
-        languages in these fields and name them something appropriate.
-    en_hint : str, optional (default='E')
-        The additional file could have answers in `de_answer`, `en_answer`
-        or both. The card types derived from flagged words in `de1` could
-        have an answer also from `de1`, `en1`, or `de_notes_list`. This
+        written, and this will be passed as the mapper.
+    nl_hint : str, optional (default='N')
+        The additional file could have answers in `tl_answer`, `nl_answer`
+        or both. The card types derived from flagged words in `tl1` could
+        have an answer also from `tl1`, `nl1`, or `tl_notes_list`. This
         hint is added to the prompt created on the front of the card
         indicating from which field the answer was taken.
-    de_hint : str, optional (default='D')
-        See `en_hint` above.
-    htag_prefix : str, optional (default='DE')
+    tl_hint : str, optional (default='T')
+        See `nl_hint` above.
+    htag_prefix : str, optional (default='TL')
         Eventually passed to `flag_audio_and_markup`.
 
     Returns
@@ -478,27 +473,27 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     output file is also written to location `outfile`.
     """
 
-    de1_not_flagged_set = set()
-    de1_flagged_dict = {}
+    tl1_not_flagged_set = set()
+    tl1_flagged_dict = {}
 
-    df.de1_list.map(lambda x: _add_unflagged_headword_to_set(x,
-          de1_not_flagged_set, str_to_wordlist_key, flags))
+    df.tl1_list.map(lambda x: _add_unflagged_headword_to_set(x,
+          tl1_not_flagged_set, str_to_wordlist_key, flags))
 
-    for  (en1,    part_of_speech, de_notes_list, de_pronun,
-          de1_list,    de2_list) in df[
-        ['en1', 'part_of_speech','de_notes_list','de_pronun',
-         'de1_list', 'de2_list']].values:
-        make_new_cards(exclude_headwords=de1_not_flagged_set,
-                       de1_flagged_dict_=de1_flagged_dict,
+    for  (nl1,    part_of_speech, tl_notes_list, tl_pronun,
+          tl1_list,    tl2_list) in df[
+        ['nl1', 'part_of_speech','tl_notes_list','tl_pronun',
+         'tl1_list', 'tl2_list']].values:
+        _make_new_cards(exclude_headwords=tl1_not_flagged_set,
+                       tl1_flagged_dict_=tl1_flagged_dict,
                        str_to_wordlist_key=str_to_wordlist_key,
                        flags=flags,
-                       en1_hint=en_hint, de1_hint=de_hint,
-                       en1=en1, part_of_speech=part_of_speech,
-                       de1_list=de1_list, de2_list=de2_list,
-                       de_notes_list=de_notes_list, de_pronun=de_pronun)
-    de1_df = pd.DataFrame.from_dict(de1_flagged_dict, orient='index')
+                       nl1_hint=nl_hint, tl1_hint=tl_hint,
+                       nl1=nl1, part_of_speech=part_of_speech,
+                       tl1_list=tl1_list, tl2_list=tl2_list,
+                       tl_notes_list=tl_notes_list, tl_pronun=tl_pronun)
+    tl1_df = pd.DataFrame.from_dict(tl1_flagged_dict, orient='index')
 
-    res_de1 = [
+    res_tl1 = [
           flawful.tag_audio_and_markup(audio_dicts=aud_dicts,
                  wordlists=wordlists,
                  str_to_wordlist_key=str_to_wordlist_key,
@@ -507,56 +502,56 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                  htag_prefix=htag_prefix,
                  chapter=999,
                  tokens=[[row[0]]],
-                 names=['de1'],
+                 names=['tl1'],
                  assign_chapter=[True])
-          for row in de1_df[['de1']].values
+          for row in tl1_df[['tl1']].values
               ]
-    de1_df['de_audio'] = [x.audio_output for x in res_de1]
-    de1_df['de1_color'] = [''.join(x.markup_output['de1']) for x in res_de1]
-    de1_df['chapter'] = [x.chapter for x in res_de1]
-    de1_df['Tags'] = [x.tags for x in res_de1]
-    vars_in_output = ['note_id', 'en1', 'part_of_speech', 'de_defs',
-                     'def_type', 'de1', 'de2', 'de_pronun', 'de_audio',
-                     'de1_color', 'chapter']
+    tl1_df['tl_audio'] = [x.audio_output for x in res_tl1]
+    tl1_df['tl1_color'] = [''.join(x.markup_output['tl1']) for x in res_tl1]
+    tl1_df['chapter'] = [x.chapter for x in res_tl1]
+    tl1_df['Tags'] = [x.tags for x in res_tl1]
+    vars_in_output = ['note_id', 'nl1', 'part_of_speech', 'tl_defs',
+                     'def_type', 'tl1', 'tl2', 'tl_pronun', 'tl_audio',
+                     'tl1_color', 'chapter']
 
-    if de_override_df is not None:
-        df2 = process_de_override_df(df=de_override_df,
+    if tl_override_df is not None:
+        df2 = _process_tl_override_df(df=tl_override_df,
                      str_to_chapter=str_to_chapter,
                      aud_dicts=aud_dicts, wordlists=wordlists,
                      str_to_wordlist_key=str_to_wordlist_key,
                      str_to_audio_key=str_to_audio_key,
                      braces_html_class=braces_html_class,
                      select_keys_no_audio=select_keys_no_audio,
-                     en_hint=en_hint, de_hint=de_hint,
+                     nl_hint=nl_hint, tl_hint=tl_hint,
                      htag_prefix=htag_prefix,
                      )
         df2 = df2.rename({'audio': 'o_audio', 'chapter': 'o_chapter',
                     'Tags': 'o_Tags'}, axis='columns')
 
-        de1_df = de1_df.merge(df2[['id','merge_id','de_table_answer',
-           'de_table_prompt','pronun','notes','o_audio','o_chapter','o_Tags']],
+        tl1_df = tl1_df.merge(df2[['id','merge_id','tl_table_answer',
+           'tl_table_prompt','pronun','notes','o_audio','o_chapter','o_Tags']],
             how='outer', on='merge_id', indicator='merge_ind')
 
-        in_df2 = de1_df.merge_ind != 'left_only'
-        de1_df['has_table'] = np.where(in_df2, 'has_table', '')
-        de1_df['no_table']  = np.where(in_df2, '', 'Y')
-        de1_df['de_audio'] = np.where(in_df2, de1_df.o_audio,  de1_df.de_audio)
-        de1_df['chapter']  = np.where(in_df2, de1_df.o_chapter, de1_df.chapter)
-        de1_df['Tags']     = np.where(in_df2, de1_df.o_Tags,   de1_df.Tags)
-        de1_df['note_id']  = np.where(in_df2,
-                                      'AD_' + de1_df.id, de1_df.merge_id)
-        vars_in_output.extend(['de_table_answer','de_table_prompt','has_table',
+        in_df2 = tl1_df.merge_ind != 'left_only'
+        tl1_df['has_table'] = np.where(in_df2, 'has_table', '')
+        tl1_df['no_table']  = np.where(in_df2, '', 'Y')
+        tl1_df['tl_audio'] = np.where(in_df2, tl1_df.o_audio,  tl1_df.tl_audio)
+        tl1_df['chapter']  = np.where(in_df2, tl1_df.o_chapter, tl1_df.chapter)
+        tl1_df['Tags']     = np.where(in_df2, tl1_df.o_Tags,   tl1_df.Tags)
+        tl1_df['note_id']  = np.where(in_df2,
+                                      'AD_' + tl1_df.id, tl1_df.merge_id)
+        vars_in_output.extend(['tl_table_answer','tl_table_prompt','has_table',
                                'no_table','pronun','notes'])
 
-    #de1_df['dummy'] = True
-    #print(flawful.twowaytbl(de1_df, 'chapter', 'dummy', cumulative=True))
-    de1_df = de1_df[vars_in_output + ['Tags']]
+    #tl1_df['dummy'] = True
+    #print(flawful.twowaytbl(tl1_df, 'chapter', 'dummy', cumulative=True))
+    tl1_df = tl1_df[vars_in_output + ['Tags']]
     if output_mapper is not None:
-        de1_df.rename(columns=output_mapper, inplace=True)
+        tl1_df.rename(columns=output_mapper, inplace=True)
 
-    de1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
+    tl1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
                   index=False)
-    de1_df[0:0].to_csv(f'{outfile}_fields.txt', sep='\t',
+    tl1_df[0:0].to_csv(f'{outfile}_fields.txt', sep='\t',
                        quoting=csv.QUOTE_NONE, index=False)
 
     #--------------------------------------------------------------------------
@@ -566,11 +561,11 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     # can be replaced with the below to add metadata to the file header. See
     # similar section in example1.py for discussion and cautions.
     #
-    #tags_col = de1_df.columns.get_loc('Tags')
-    #column_str = '\t'.join(de1_df.columns)
+    #tags_col = tl1_df.columns.get_loc('Tags')
+    #column_str = '\t'.join(tl1_df.columns)
     #metadata = ['#separator:Tab',
-    #           f'#deck:DE Additional',
-    #            "#notetype:DE Additional",
+    #           f'#deck:TL Additional',
+    #            "#notetype:TL Additional",
     #            '#html:true',
     #           f'#tags column:{tags_col + 1}',
     #           f"#if matches:update current",
@@ -579,5 +574,5 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     #meta_df = pd.DataFrame(metadata)
     #meta_df.to_csv(f'{outfile}.txt', sep='@', index=False, header=False,
     #             quoting=csv.QUOTE_NONE)
-    #de1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
+    #tl1_df.to_csv(f'{outfile}.txt', sep='\t', quoting=csv.QUOTE_NONE,
     #              index=False, mode='a')

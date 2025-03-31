@@ -79,7 +79,7 @@ import numpy as np
 import flawful
 import flawful.german
 
-from de_additional import create_de_additional_output, check_flag_usage
+from de_additional import create_tl_additional_output, check_flag_usage
 
 #------------------------------------------------------------------------------
 # Input / Output directories should be set by the user before running.
@@ -133,12 +133,35 @@ DE_ADDITIONAL_INPUT_FILE = 'additional_input_notes.txt'
 # can then store words in other languages in these fields and rename the fields
 # to something appropriate. Users setting this value may also want to pass a
 # different value than the defaults of `en_hint`, `de_hint`, and `htag_prefix`
-# to `create_de_additional_output` since the defaults are 'E', 'D', and 'DE',
+# to `create_tl_additional_output` since the defaults are 'E', 'D', and 'DE',
 # meaning English, German, and German, respectively.
 #DE_ADD_OUTPUT_MAPPER = {'en1': 'po1'}
-DE_ADD_OUTPUT_MAPPER = None
+DE_ADD_OUTPUT_MAPPER = {'nl1': 'en1', 'tl2': 'de2', 'tl1': 'de1',
+     'tl1_color': 'de1_color',
+     'tl_pronun': 'de_pronun',
+     'tl_defs': 'de_defs',
+     'tl_table_prompt': 'de_table_prompt',
+     'tl_table_answer': 'de_table_answer',
+     'tl_audio':  'de_audio',
+                       }
 
-# If not none, then if `create_de_additional_output` is called, this value is
+DE_ADD_INPUT_MAPPER = {'en1': 'nl1',
+     'de1_hint': 'tl1_hint',     'de1_list': 'tl1_list',
+     'de2_list': 'tl2_list',     'de_notes_list': 'tl_notes_list',
+     'de_answer': 'tl_answer',   'de_answer_list': 'tl_answer_list',
+     'en_answer': 'nl_answer',   'en_answer_list': 'nl_answer_list',
+     'de_pronun': 'tl_pronun',   'de_xref': 'tl_xref',
+     'de1': 'tl1',              'de2' : 'tl2',
+     'de3p_1': 'tl3p_1', 'de3p_2': 'tl3p_2', 'de3p_3': 'tl3p_3',
+     'de3p_4': 'tl3p_4', 'de3p_5': 'tl3p_5',
+     'de3d_1': 'tl3d_1', 'de3d_2': 'tl3d_2', 'de3d_3': 'tl3d_3',
+     'de3d_4': 'tl3d_4', 'de3d_5': 'tl3d_5',
+     'de3e_1': 'tl3e_1', 'de3e_2': 'tl3e_2', 'de3e_3': 'tl3e_3',
+     'de3e_4': 'tl3e_4', 'de3e_5': 'tl3e_5',
+                       }
+ADD_INPUT_MAPPER = DE_ADD_INPUT_MAPPER
+
+# If not none, then if `create_tl_additional_output` is called, this value is
 # passed in the `braces_html_class` parameter, so that text surrounded by
 # braces in `de` or `de3_prompts` (or de3d_N, de3e_N, de3p_N) is put in an
 # HTML div element with the indicated class.
@@ -809,17 +832,25 @@ if DE_ADDITIONAL_INPUT_FILE is not None:
             lambda x: x.split(';'))
     de_override_df['de_answer_list'] = de_override_df.de_answer.map(
             lambda x: x.split(';'))
+    if DE_ADD_INPUT_MAPPER is not None:
+        de_override_df.rename(columns=DE_ADD_INPUT_MAPPER, inplace=True)
 else:
     de_override_df = None
 
-create_de_additional_output(df.drop(columns=['de1','de2']),
+if ADD_INPUT_MAPPER is not None:
+    df_mod = df.rename(columns=ADD_INPUT_MAPPER)
+else:
+    df_mod = df
+
+create_tl_additional_output(df_mod,
                  outfile=os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX),
                  aud_dicts=aud_dicts, wordlists=de_dicts,
                  str_to_wordlist_key=make_wordlist_key_notes,
                  str_to_audio_key=make_audio_key_notes,
                  select_keys_no_audio=filter_text_not_audio_pre,
-                 de_override_df=de_override_df,
+                 tl_override_df=de_override_df,
                  str_to_chapter=str_to_chapter,
+                 nl_hint='E', tl_hint='D', htag_prefix='DE',
                  braces_html_class=BRACES_HTML_CLASS,
                  output_mapper=DE_ADD_OUTPUT_MAPPER,
                  flags=FLAGS)
