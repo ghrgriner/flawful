@@ -735,33 +735,36 @@ df['de1_prompt'] += np.where(df.de1_hint != '', ' [' + df.de1_hint + ']', '')
 make_rv = [
     flawful.make_prompt_and_answer_table(
             prompts=[r[0],''], answers=[r[1],r[2]],
-            tokenized_prompts=r[3], tokenized_answers=r[4],
+            expr_prompts=r[3].split(';'),
+            expr_answers=r[4].split(';'),
             drop_empty_rows=True)
     for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
                  'de3_color']].values
           ]
 df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
 df['de_table_answer'] = [ x['answer'] for x in make_rv ]
-df['de3_omitted'] = [ x['tokenized_omitted'] for x in make_rv ]
+df['de3_omitted'] = [ x['exprs_omitted'] for x in make_rv ]
 
 # Make table where German words are in the first column
 make_rev_rv1 = [
     flawful.make_prompt_and_answer_table(
         prompts=[r[1],''], answers=[r[0],''],
-        tokenized_prompts=r[4], tokenized_answers=r[3],
+        expr_prompts=r[4].split(';'),
+        expr_answers=r[3].split(';'),
         drop_empty_rows=True)
    for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
                 'de3_color']].values
           ]
 df['de_rev_table_prompt'] = [ x['prompt'] for x in make_rev_rv1 ]
-df['de3_rev_omitted'] = [ x['tokenized_omitted'] for x in make_rev_rv1 ]
+df['de3_rev_omitted'] = [ x['exprs_omitted'] for x in make_rev_rv1 ]
 
 # The 'answer' side for the above. Only difference is `de2` is put
 # in the first column of the second row.
 make_rev_rv2 = [
     flawful.make_prompt_and_answer_table(
         prompts=[r[1],r[2]], answers=[r[0],''],
-        tokenized_prompts=r[4], tokenized_answers=r[3],
+        expr_prompts=r[4].split(';'),
+        expr_answers=r[3].split(';'),
         drop_empty_rows=True)
    for r in df[['de1_prompt','de1_at1_sd1_color','de2','de3_prompt',
                 'de3_color']].values

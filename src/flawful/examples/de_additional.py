@@ -269,7 +269,14 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
        'audio','chapter','Tags'.
     """
 
-    if ('de_prompts' not in df and 'de3' not in df):
+    # TODO: for now, match the fact that we originally built `de3_prompts`
+    # by '; '.join(...), in other words, to replicate we need to add a space
+    # after the first value in the list.
+    def add_space(list_):
+        return [ (' ' if idx > 0 else '') + val
+                 for idx, val in enumerate(list_) ]
+
+    if ('de3_prompts_list' not in df and 'de3_list' not in df):
         df['de3p'] = flawful.columns_with_prefix_to_list(df, 'de3p_')
         df['de3d'] = flawful.columns_with_prefix_to_list(df, 'de3d_')
         df['de3e'] = flawful.columns_with_prefix_to_list(df, 'de3e_')
@@ -278,17 +285,20 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
                     answer2_hint=en_hint)
                 for (de3p, de3d, de3e) in df[['de3p','de3d','de3e']].values
                   ]
-        df['de3_prompts'] = [ '; '.join(x['prompts']) for x in ret_val ]
-        df['de3'] = [ '; '.join(x['answers']) for x in ret_val ]
-    elif ('de_prompts' in df or 'de3' in df):
-        raise ValueError('Both or none of `de_prompts` and `de3`'
+        #df['de3_prompts_list'] = [ x['prompts'] for x in ret_val ]
+        #df['de3_list'] = [ x['answers'] for x in ret_val ]
+        df['de3_prompts_list'] = [ add_space(x['prompts']) for x in ret_val ]
+        df['de3_list'] = [ add_space(x['answers']) for x in ret_val ]
+    elif ('de3_prompts_list' in df or 'de3_list' in df):
+        raise ValueError('Both or none of `de3_prompts_list` and `de3_list`'
                          'columns should be present in `df`.')
 
+    def braces_to_class_list(x):
+        return [ flawful.braces_to_class(val, html_class=braces_html_class)
+                 for val in x ]
     if braces_html_class is not None:
-        df['de3_prompts'] = df.de3_prompts.map(
-            lambda x: flawful.braces_to_class(x, html_class=braces_html_class))
-        df['de3'] = df.de3.map(
-            lambda x: flawful.braces_to_class(x, html_class=braces_html_class))
+        df['de3_prompts_list'] = df.de3_prompts_list.map(braces_to_class_list)
+        df['de3_list'] = df.de3_list.map(braces_to_class_list)
 
     ret_mtp = [
          flawful.make_hint_target_and_answer(
@@ -331,9 +341,9 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
     make_rv = [
         flawful.make_prompt_and_answer_table(
             prompts=[r[0],''], answers=[r[1],''],
-            tokenized_prompts=r[2], tokenized_answers=r[3],
+            expr_prompts=r[2], expr_answers=r[3],
             drop_empty_rows=True)
-       for r in df[['prompt','answer','de3_prompts', 'de3']].values
+       for r in df[['prompt','answer','de3_prompts_list', 'de3_list']].values
               ]
     df['de_table_prompt'] = [ x['prompt'] for x in make_rv ]
 
@@ -341,10 +351,10 @@ def process_de_override_df(df, aud_dicts, wordlists, str_to_chapter,
     make_rv = [
         flawful.make_prompt_and_answer_table(
             prompts=[r[0],r[4]], answers=[r[1],''],
-            tokenized_prompts=r[2], tokenized_answers=r[3],
+            expr_prompts=r[2], expr_answers=r[3],
             drop_empty_rows=True)
-       for r in df[['prompt','answer','de3_prompts',
-                    'de3','de2']].values
+       for r in df[['prompt','answer','de3_prompts_list',
+                    'de3_list','de2']].values
               ]
     df['de_table_answer'] = [ x['answer'] for x in make_rv ]
 
@@ -387,8 +397,8 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
         - de2 : Secondary German word or phrase(s). Semicolon delimited
                 when (`de1` contains '(in)' and `part_of_speech == 'N'`)
                 or when `part_of_speech == 'V'`.
-        - de3 : Expressions
-        - de3_prompt : Prompts for expressions
+        - de3_list : Expressions
+        - de3_prompts_list : Prompts for expressions
         - de_notes : Notes, including definitions. This is a semi-colon
                 formatted string. If a token matches the format in
                 `to_note_dict`, it will be processed and definition
@@ -449,14 +459,16 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
 
         In addition, fields can exist that are analagous to `de3` and
         `de3_prompts` in the main file. These should either be of the form:
-           - de3 : Same meaning as in the main file.
-           - de3_prompts : Same meaning as in the main file.
+           - de3_list : Same meaning as `de3` in the main file, except
+             is a list of the tokens instead of a string.
+           - de3_prompts_list : Same meaning as `de3_prompts` in the main
+             file, except is a list of the tokens instead of a string.
         Alternatively, users can use fields that will be used to generate
-        `de3` and `de3_prompts`. In this case, the input fields should
-        each contain a single token.
-           - de3p_N : The Nth token for `de3_prompts`
-           - de3d_N : The Nth token for `de3` (in German)
-           - de3e_N : The Nth token for `de3` (in English)
+        `de3_list` and `de3_prompts_list`. In this case, the input fields
+        should each contain a single token.
+           - de3p_N : The Nth token for `de3_prompts_list`
+           - de3d_N : The Nth token for `de3_list` (in German)
+           - de3e_N : The Nth token for `de3_list` (in English)
     str_to_chapter : Callable[[str], int], optional
         Function to convert strings in `de_override_df.chaplist` to integer
         representing the minimum chapter. Passed to `init_chapter()`. See
@@ -464,8 +476,8 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
         not None.
     braces_html_class : str, optional
         If populated, when processing `de_override_df` (if applicable),
-        '{text}' in the `de3` or `de3_prompts` columns is converted to:
-        '<div class={braces_html_class}>text</div>'.
+        '{text}' in the `de3_list` or `de3_prompts_list` tokens is
+        converted to: '<div class={braces_html_class}>text</div>'.
     output_mapper : optional
         If not `None`, `pd.DataFrame.rename` will be called on the dataset
         that makes the additional output file just before the output is

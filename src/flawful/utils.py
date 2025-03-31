@@ -875,13 +875,25 @@ def count_tokens(x: str, sep: str =';',
     else:
         return x.count(sep)+1
 
+def count_tokens_list(x: list[str]) -> int:
+    """Return number of tokens string had before it was tokenized to a list.
+
+    In other words, count_tokens_list(x.split(sep)) returns the same value
+    as count_tokens(x, sep=sep).
+
+    This is just the length of the list, except x == [''] also returns 0.
+    """
+    if (len(x) == 1 and x[0] == ''):
+        return 0
+    else:
+        return len(x)
+
 def make_prompt_and_answer_table(prompts: List[str],
         answers: List[str],
-        tokenized_prompts: str,
-        tokenized_answers: str,
-        tokenized_tr_class: Optional[str] = None,
+        expr_prompts: List[str],
+        expr_answers: List[str],
+        expr_tr_class: Optional[List[str]] = None,
         drop_empty_rows: bool = False,
-        sep: str = ';',
         table_class: Optional[str] = None,
         ) -> Dict[str, str]:
     """Create HTML tables for prompt and answer side of flashcards.
@@ -890,10 +902,10 @@ def make_prompt_and_answer_table(prompts: List[str],
     and the output table will:
     (1) start with N rows, where `N = len(prompts)`
     (2) add another M rows, where M is the number of tokens in
-        `tokenized_prompts` and `tokenized_answers`. If this number of
+        `expr_prompts` and `expr_answers`. If this number of
         tokens is not equal in the two variables, 'Y' will be set in
-        the 'tokenized_output' item of the return value, and no rows
-        will be added for (2).
+        the 'expr_output' item of the return value, and no rows will be
+        added for (2).
 
     Parameters
     ----------
@@ -902,19 +914,17 @@ def make_prompt_and_answer_table(prompts: List[str],
     answers : list[str]
         Answers for initial row(s) in table. Length of list must match
         length of `prompts`.
-    tokenized_prompts : str
+    expr_prompts : list[str]
         Prompt for second set of rows in table.
-    tokenized_answers : str
+    expr_answers : list[str]
         Answer for second set of rows in table.
-    tokenized_tr_class : str
+    expr_tr_class : list[str], optional
         If not None, get the token for a given row. If the token
         evaluates to true, put the value in double-quotes and assign it
         to the `class` element of the HTML tr tag.
     drop_empty_rows : bool, default = False
         Drop row(s) where both elements of `prompts` and `answers` are
         False.
-    sep : str, default = ';'
-        Separator for `tokenized_prompts` and `tokenized_answers`.
     table_class : str, optional default = None
         If not None or '', put the value in double-quotes and assign it
         to the `class` element of the HTML table tag.
@@ -922,10 +932,9 @@ def make_prompt_and_answer_table(prompts: List[str],
     Returns
     -------
     A dictionary with three elements:
-    - 'tokenized_omitted': 'Y' if `tokenized_prompts` and
-      `tokenized_answers` do not have the same number of tokens. In
-       this case, rows will not be added to the output table(s) for
-       these variables.
+    - 'exprs_omitted': 'Y' if `expr_prompts` and `expr_answers` do not have
+        the same number of tokens. In this case, rows will not be added to
+        the output table(s) for these variables.
     - 'prompt': str containing an HTML table with the prompts in the
         first column and an empty second column.
     - 'answer': str containing an HTML table with the prompts in the
@@ -936,8 +945,8 @@ def make_prompt_and_answer_table(prompts: List[str],
         raise ValueError(f'{len(prompts)=} and {len(answers)=}'
                           ' must be equal')
 
-    n_pro = count_tokens(tokenized_prompts, sep=sep)
-    n_ans = count_tokens(tokenized_answers, sep=sep)
+    n_pro = count_tokens_list(expr_prompts)
+    n_ans = count_tokens_list(expr_answers)
 
     if table_class is None or table_class == '':
         table_tag = '<table>'
@@ -957,22 +966,22 @@ def make_prompt_and_answer_table(prompts: List[str],
     if (n_pro > 0 or n_ans > 0) and (n_pro != n_ans):
         a_list.append('</table>')
         p_list.append('</table>')
-        return {'tokenized_omitted': 'Y',
+        return {'exprs_omitted': 'Y',
                 'prompt': ''.join(p_list),
                 'answer': ''.join(a_list)}
     elif (n_pro == 0 and n_ans == 0):
         a_list.append('</table>')
         p_list.append('</table>')
-        return {'tokenized_omitted': '',
+        return {'exprs_omitted': '',
                 'prompt': ''.join(p_list),
                 'answer': ''.join(a_list)}
     else:
-        tp_list = tokenized_prompts.split(sep)
-        ta_list = tokenized_answers.split(sep)
-        if tokenized_tr_class is None:
+        tp_list = expr_prompts
+        ta_list = expr_answers
+        if expr_tr_class is None:
             tc_list = [''] * (n_pro)
         else:
-            tc_list = tokenized_tr_class.split(sep)
+            tc_list = expr_tr_class
         for idx, val in enumerate(ta_list):
             tr_class = tc_list[idx].strip()
             if tr_class:
@@ -984,7 +993,7 @@ def make_prompt_and_answer_table(prompts: List[str],
             p_list.append(f'{tr_tag}<td>{tp_list[idx]}</td><td></td></tr>')
         a_list.append('</table>')
         p_list.append('</table>')
-        return {'tokenized_omitted': '',
+        return {'exprs_omitted': '',
                 'prompt': ''.join(p_list),
                 'answer': ''.join(a_list)}
 
