@@ -711,6 +711,7 @@ df['de1_at1_sd1_color'] = np.select(
      df.de1_color + '; A: ' + df.at1_color,
      df.de1_color + '; CH: ' + df.sd1_color], default=df.de1_color)
 
+df['de_notes_list'] = df.de_notes.map(lambda x: x.split(';'))
 df['de1_list'] = df.de1.map(lambda x: x.split(','))
 df['de2_list'] = [ tokenize_de2(de1=row[0], de2=row[1], part_of_speech=row[2])
                    for row in df[['de1','de2','part_of_speech']].values]

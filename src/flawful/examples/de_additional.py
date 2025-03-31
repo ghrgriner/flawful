@@ -105,12 +105,11 @@ def _add_unflagged_headword_to_set(col, set_, str_to_wordlist_key, flags, sep):
         if headword and flag_set.isdisjoint(val):
             set_.add(headword)
 
-def to_def_dict(col, sep):
-    """Obtain definitions from `col` and put into a dictionary.
+def to_def_dict(def_list):
+    """Obtain definitions from `def_list` and put into a dictionary.
 
-    The `col` field should contain semi-formatted text from which the
-    definition can be (eventually) extracted. Tokens are processed if they
-    are of the form:
+    `def_list` should contain tokens from which the definition can be
+    (eventually) extracted. Tokens are processed if they are of the form:
     - 'N: some text'
     - 'N=M'
     - 'N=M some text' (usually some text is in parentheses)
@@ -131,20 +130,12 @@ def to_def_dict(col, sep):
 
     We do not expect all tokens in `de1` to have an entry in the output.
 
-    Parameters
-    ----------
-    col : str
-        See description above.
-    sep : str
-        Delimiter for tokens in `col`.
-
     Returns
     -------
     A dictionary. For each token processed, an item is added to the
     output dictionary with key N and value: (M | None, 'some text' | '').
     """
 
-    def_list = col.split(sep)
     ret_dict = {}
     for val in def_list:
         val = val.strip()
@@ -164,7 +155,7 @@ def to_def_dict(col, sep):
 
 def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                    flags, en1, part_of_speech, en1_hint, de1_hint,
-                   de2, de1_list, de2_list, de_notes, de_pronun):
+                   de2, de1_list, de2_list, de_notes_list, de_pronun):
     """Add items to dictionary with the fields for the DE1_Flagged cards.
 
     Returns
@@ -193,7 +184,7 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
 
             # Make dictionary containings definitions. Key is index, starting
             # at 1 instead of 0.
-            def_dict = to_def_dict(de_notes, sep=';')
+            def_dict = to_def_dict(de_notes_list)
             definition = ''
             def_type = ''
             if idx + 1 in def_dict:
@@ -211,6 +202,7 @@ def make_new_cards(exclude_headwords, de1_flagged_dict_, str_to_wordlist_key,
                 # this will also be on the back of the card, so we don't
                 # put it in `definition`.
                 def_type = f'[{en1_hint}]'
+                de_notes = ';'.join(de_notes_list)
                 if f'{idx+1}:' in de_notes or f'{idx+1}=' in de_notes:
                     # might happen when we accidentally used comma instead
                     # of semi-colon to tokenize de3
@@ -386,8 +378,8 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                 or when `part_of_speech == 'V'`.
         - de3_list : Expressions
         - de3_prompts_list : Prompts for expressions
-        - de_notes : Notes, including definitions. This is a semi-colon
-                formatted string. If a token matches the format in
+        - de_notes_list : Notes, including definitions. This is a
+                list of tokens. If a token matches the format in
                 `to_note_dict`, it will be processed and definition
                 information extracted. Other tokens are ignored.
         - de_pronun : Contains pronunciation information. This is passed
@@ -475,9 +467,9 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
     en_hint : str, optional (default='E')
         The additional file could have answers in `de_answer`, `en_answer`
         or both. The card types derived from flagged words in `de1` could
-        have an answer also from `de1`, `en1`, or `de_notes`. This hint is
-        added to the prompt created on the front of the card indicating
-        from which field the answer was taken.
+        have an answer also from `de1`, `en1`, or `de_notes_list`. This
+        hint is added to the prompt created on the front of the card
+        indicating from which field the answer was taken.
     de_hint : str, optional (default='D')
         See `en_hint` above.
     htag_prefix : str, optional (default='DE')
@@ -496,9 +488,9 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                                                         str_to_wordlist_key,
                                                         flags, sep))
 
-    for  (en1,    part_of_speech,   de2,   de_notes,   de_pronun,
+    for  (en1,    part_of_speech,   de2,  de_notes_list,   de_pronun,
           de1_list,    de2_list) in df[
-        ['en1', 'part_of_speech', 'de2', 'de_notes', 'de_pronun',
+        ['en1', 'part_of_speech', 'de2', 'de_notes_list', 'de_pronun',
          'de1_list', 'de2_list']].values:
         make_new_cards(exclude_headwords=de1_not_flagged_set,
                        de1_flagged_dict_=de1_flagged_dict,
@@ -507,7 +499,7 @@ def create_de_additional_output(df, outfile, aud_dicts, wordlists,
                        en1_hint=en_hint, de1_hint=de_hint,
                        en1=en1, part_of_speech=part_of_speech,
                        de2=de2, de1_list=de1_list,
-                       de2_list=de2_list, de_notes=de_notes,
+                       de2_list=de2_list, de_notes_list=de_notes_list,
                        de_pronun=de_pronun)
     de1_df = pd.DataFrame.from_dict(de1_flagged_dict, orient='index')
 
