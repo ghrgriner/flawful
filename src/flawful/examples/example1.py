@@ -78,8 +78,7 @@ import pandas as pd
 import numpy as np
 import flawful
 import flawful.german
-
-from additional import create_tl_additional_output, check_flag_usage
+import flawful.add
 
 #------------------------------------------------------------------------------
 # Input / Output directories should be set by the user before running.
@@ -818,7 +817,7 @@ df['tags'] = df.tags + np.where((df.chapter < 5) | (df.n_de1 > 1),
 # Optional code to make additional output file
 #------------------------------------------------------------------------------
 for de3, de3_prompt in df[['de3','de3_prompt']].values:
-    check_flag_usage(de3.split(';'), de3_prompt.split(';'),
+    flawful.add.check_flag_usage(de3.split(';'), de3_prompt.split(';'),
                      flags=DE3_FLAGS_TO_CHECK)
 
 if DE_ADDITIONAL_INPUT_FILE is not None:
@@ -842,7 +841,7 @@ if ADD_INPUT_MAPPER is not None:
 else:
     df_mod = df
 
-create_tl_additional_output(df_mod,
+flawful.add.create_tl_additional_output(df_mod,
                  outfile=os.path.join(OUTPUT_DIR, DE_ADD_OUTPUT_FILE_PREFIX),
                  aud_dicts=aud_dicts, wordlists=de_dicts,
                  str_to_wordlist_key=make_wordlist_key_notes,
